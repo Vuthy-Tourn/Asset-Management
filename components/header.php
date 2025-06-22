@@ -1,72 +1,523 @@
-<header class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+<?php
+// header.php
+// Get current page title based on the current script
+$current_page = basename($_SERVER['PHP_SELF']);
+$current_dir = basename(dirname($_SERVER['PHP_SELF']));
+
+$page_title = 'Dashboard';
+if (strpos($_SERVER['PHP_SELF'], 'floor/') !== false) $page_title = 'Floors';
+if (strpos($_SERVER['PHP_SELF'], 'category/') !== false) $page_title = 'Categories';
+if (strpos($_SERVER['PHP_SELF'], 'products/') !== false) $page_title = 'Products';
+if (strpos($_SERVER['PHP_SELF'], 'analytics/') !== false) $page_title = 'Analytics';
+if (strpos($_SERVER['PHP_SELF'], 'settings/') !== false) $page_title = 'Settings';
+
+// Database connection (replace with your actual connection)
+
+
+// Function to generate notifications based on recent changes
+function generateRecentNotifications($conn)
+{
+    $notifications = [];
+    $now = new DateTime();
+
+    // Get recent floor changes (last 24 hours)
+    $floorQuery = "SELECT * FROM floor WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 DAY) ORDER BY created_at DESC LIMIT 3";
+    $floorResult = mysqli_query($conn, $floorQuery);
+
+    while ($floor = mysqli_fetch_assoc($floorResult)) {
+        $notifications[] = [
+            'id' => 'floor_' . $floor['id'],
+            'title' => 'New Floor Added',
+            'message' => 'Floor "' . htmlspecialchars($floor['name']) . '" has been added',
+            'type' => 'success',
+            'time' => timeAgo($floor['created_at']),
+            'read' => false,
+            'icon' => 'fas fa-building'
+        ];
+    }
+
+    // Get recent category changes (last 24 hours)
+    $categoryQuery = "SELECT c.*, f.name as floor_name FROM category c 
+                     JOIN floor f ON c.floor_id = f.id 
+                     WHERE c.created_at >= DATE_SUB(NOW(), INTERVAL 1 DAY) 
+                     ORDER BY c.created_at DESC LIMIT 3";
+    $categoryResult = mysqli_query($conn, $categoryQuery);
+
+    while ($category = mysqli_fetch_assoc($categoryResult)) {
+        $notifications[] = [
+            'id' => 'category_' . $category['id'],
+            'title' => 'New Category Added',
+            'message' => 'Category "' . htmlspecialchars($category['name']) . '" added to floor ' . htmlspecialchars($category['floor_name']),
+            'type' => 'info',
+            'time' => timeAgo($category['created_at']),
+            'read' => false,
+            'icon' => 'fas fa-tag'
+        ];
+    }
+
+    // Get recent product changes (last 24 hours)
+    $productQuery = "SELECT p.*, c.name as category_name FROM products p 
+                    JOIN category c ON p.category_id = c.id 
+                    WHERE p.created_at >= DATE_SUB(NOW(), INTERVAL 1 DAY) 
+                    ORDER BY p.created_at DESC LIMIT 3";
+    $productResult = mysqli_query($conn, $productQuery);
+
+    while ($product = mysqli_fetch_assoc($productResult)) {
+        $notifications[] = [
+            'id' => 'product_' . $product['id'],
+            'title' => 'New Product Added',
+            'message' => 'Product "' . htmlspecialchars($product['name']) . '" added to category ' . htmlspecialchars($product['category_name']),
+            'type' => 'success',
+            'time' => timeAgo($product['created_at']),
+            'read' => false,
+            'icon' => 'fas fa-box'
+        ];
+    }
+
+    // Sort all notifications by time (newest first)
+    usort($notifications, function ($a, $b) {
+        return strtotime($b['time']) - strtotime($a['time']);
+    });
+
+    return $notifications;
+}
+
+// Helper function to convert datetime to "time ago" format
+function timeAgo($datetime)
+{
+    $time = strtotime($datetime);
+    $now = time();
+    $diff = $now - $time;
+
+    if ($diff < 60) return $diff . " seconds ago";
+    if ($diff < 3600) return floor($diff / 60) . " minutes ago";
+    if ($diff < 86400) return floor($diff / 3600) . " hours ago";
+    if ($diff < 604800) return floor($diff / 86400) . " days ago";
+    return date('M j, Y', $time);
+}
+
+// Get notifications by checking recent changes
+$notifications = generateRecentNotifications($conn);
+
+// Count unread notifications (all are unread in this implementation)
+$unread_count = count($notifications);
+
+// Check for dark mode preference
+$dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
+?>
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .glass-effect {
+        backdrop-filter: blur(16px);
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .notification-pulse {
+        animation: pulse-scale 2s infinite;
+    }
+
+    @keyframes pulse-scale {
+
+        0%,
+        100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.1);
+        }
+    }
+
+    .smooth-transition {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .search-glow:focus {
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .notification-item:hover {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0.05));
+    }
+
+    .notification-unread {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(147, 51, 234, 0.05));
+        border-left: 3px solid #3b82f6;
+    }
+
+    .mobile-menu-btn span {
+        transition: all 0.3s ease;
+        transform-origin: center;
+    }
+
+    .mobile-menu-active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .mobile-menu-active span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .mobile-menu-active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -6px);
+    }
+</style>
+
+<header class="glass-effect sticky top-0 z-40 border-b border-gray-200/50 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <!-- Mobile menu button -->
-            <div class="flex items-center md:hidden">
-                <button type="button" id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 transition-colors duration-200">
+            <div class="flex items-center lg:hidden">
+                <button type="button" id="mobile-menu-button"
+                    class="mobile-menu-btn inline-flex items-center justify-center p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 smooth-transition">
                     <span class="sr-only">Open main menu</span>
-                    <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-            </div>
-            
-            <!-- Title/Logo section -->
-            <div class="flex items-center flex-shrink-0">
-                <h1 class="text-lg md:text-xl font-bold text-gray-900 truncate">
-                    <?php
-                    $title = 'Dashboard';
-                    if (strpos($_SERVER['PHP_SELF'], 'floor/') !== false) $title = 'Floors';
-                    if (strpos($_SERVER['PHP_SELF'], 'category/') !== false) $title = 'Categories';
-                    if (strpos($_SERVER['PHP_SELF'], 'products/') !== false) $title = 'Products';
-                    echo $title;
-                    ?>
-                </h1>
-            </div>
-            
-            <!-- User profile section -->
-            <div class="flex items-center space-x-3">
-                <!-- Notification bell -->
-                <button class="p-1.5 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 relative">
-                    <span class="sr-only">View notifications</span>
-                    <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <span class="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-                </button>
-                
-                <!-- User profile dropdown -->
-                <div class="relative ml-1">
-                    <div class="flex items-center space-x-2">
-                        <span class="text-gray-600 hidden md:inline text-sm font-medium">Welcome, Admin</span>
-                        <button type="button" id="user-menu-button" class="flex rounded-full bg-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 hover:ring-2 hover:ring-blue-200" aria-expanded="false" aria-haspopup="true">
-                            <span class="sr-only">Open user menu</span>
-                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-sm">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
+                    <div class="relative w-6 h-6">
+                        <span class="absolute top-1 left-0 w-full h-0.5 bg-current block smooth-transition"></span>
+                        <span class="absolute top-2.5 left-0 w-full h-0.5 bg-current block smooth-transition"></span>
+                        <span class="absolute top-4 left-0 w-full h-0.5 bg-current block smooth-transition"></span>
                     </div>
-                    
-                    <!-- Dropdown menu -->
-                    <div id="user-dropdown" class="hidden origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 focus:outline-none transition-all duration-200 transform opacity-0 scale-95" role="menu">
-                        <div class="px-4 py-3">
-                            <p class="text-sm font-medium text-gray-900 truncate">Admin User</p>
-                            <p class="text-xs text-gray-500 truncate">admin@example.com</p>
+                </button>
+            </div>
+
+            <!-- Title/Logo -->
+            <div class="flex items-center flex-1 lg:flex-none">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-xl font-bold text-gray-900 hidden sm:block">
+                        <span id="page-title"><?php echo $page_title; ?></span>
+                    </h1>
+                </div>
+            </div>
+
+            <!-- Right side items -->
+            <div class="flex items-center space-x-3">
+
+                <!-- Notifications -->
+                <div class="relative">
+                    <button id="notifications-btn" class="p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 smooth-transition relative group">
+                        <i class="fas fa-bell text-lg"></i>
+                        <?php if ($unread_count > 0): ?>
+                            <span class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-red-500 to-pink-500 flex items-center justify-center text-white text-xs font-medium notification-pulse">
+                                <?php echo $unread_count; ?>
+                            </span>
+                        <?php endif; ?>
+                    </button>
+
+                    <!-- Notifications Dropdown -->
+                    <div id="notifications-dropdown"
+                        class="hidden absolute right-0 mt-2 w-80 rounded-2xl shadow-2xl glass-effect ring-1 ring-black ring-opacity-5 focus:outline-none smooth-transition transform opacity-0 scale-95 origin-top-right max-h-96 overflow-hidden">
+
+                        <!-- Header -->
+                        <div class="px-4 py-3 border-b border-gray-200/50">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-semibold text-gray-900">Notifications</h3>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-gray-500"><?php echo $unread_count; ?> unread</span>
+                                    <button id="mark-all-read" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">
+                                        Mark all read
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="py-1">
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150" role="menuitem">Dashboard</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150" role="menuitem">Settings</a>
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150" role="menuitem">Profile</a>
+
+                        <!-- Notifications List -->
+                        <div class="max-h-64 overflow-y-auto">
+                            <?php foreach ($notifications as $notification): ?>
+                                <div class="notification-item p-4 border-b border-gray-100/50 smooth-transition cursor-pointer <?php echo !$notification['read'] ? 'notification-unread' : ''; ?>"
+                                    data-notification-id="<?php echo $notification['id']; ?>">
+                                    <div class="flex items-start space-x-3">
+                                        <div class="flex-shrink-0">
+                                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                                <i class="<?php echo $notification['icon']; ?> text-white text-sm"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-center justify-between">
+                                                <p class="text-sm font-semibold text-gray-900 truncate">
+                                                    <?php echo htmlspecialchars($notification['title']); ?>
+                                                </p>
+                                                <?php if (!$notification['read']): ?>
+                                                    <div class="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
+                                                <?php endif; ?>
+                                            </div>
+                                            <p class="text-sm text-gray-600 mt-1 line-clamp-2">
+                                                <?php echo htmlspecialchars($notification['message']); ?>
+                                            </p>
+                                            <p class="text-xs text-gray-400 mt-1">
+                                                <?php echo $notification['time']; ?>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
-                        <div class="py-1">
-                            <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-150" role="menuitem">Sign out</a>
+
+                        <!-- Footer -->
+                        <div class="px-4 py-3 border-t border-gray-200/50 bg-gray-50/50">
+                            <a href="#" class="block text-center text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                                View all notifications
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="relative">
+                    <button id="quick-actions-btn" class="p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 smooth-transition">
+                        <i class="fas fa-plus text-lg"></i>
+                    </button>
+
+                    <!-- Quick Actions Dropdown -->
+                    <div id="quick-actions-dropdown"
+                        class="hidden absolute right-0 mt-2 w-56 rounded-2xl shadow-2xl glass-effect ring-1 ring-black ring-opacity-5 focus:outline-none smooth-transition transform opacity-0 scale-95 origin-top-right">
+                        <div class="py-2">
+                            <a href="/Uni-PHP/Assignment/products/create.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
+                                <i class="fas fa-plus-circle w-4 mr-3 text-green-500"></i>
+                                Add New Product
+                            </a>
+                            <a href="/Uni-PHP/Assignment/category/create.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
+                                <i class="fas fa-tag w-4 mr-3 text-blue-500"></i>
+                                Add Category
+                            </a>
+                            <a href="/Uni-PHP/Assignment/floor/create.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
+                                <i class="fas fa-building w-4 mr-3 text-purple-500"></i>
+                                Add Floor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Profile -->
+                <div class="relative">
+                    <button type="button" id="user-menu-button"
+                        class="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 smooth-transition group">
+                        <span class="text-gray-700 hidden sm:inline text-sm font-medium">Admin User</span>
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg hover-lift smooth-transition">
+                            <i class="fas fa-user text-sm"></i>
+                        </div>
+                    </button>
+
+                    <!-- User Dropdown menu -->
+                    <div id="user-dropdown"
+                        class="hidden absolute right-0 mt-2 w-64 rounded-2xl shadow-2xl glass-effect ring-1 ring-black ring-opacity-5 divide-y divide-gray-200/50 focus:outline-none smooth-transition transform opacity-0 scale-95 origin-top-right">
+                        <div class="px-4 py-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900">Admin User</p>
+                                    <p class="text-xs text-gray-500">admin@example.com</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="py-2">
+                            <a href="#" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
+                                <i class="fas fa-user-circle w-4 mr-3"></i>
+                                Profile
+                            </a>
+                            <a href="#" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
+                                <i class="fas fa-cog w-4 mr-3"></i>
+                                Settings
+                            </a>
+                            <a href="#" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
+                                <i class="fas fa-question-circle w-4 mr-3"></i>
+                                Help
+                            </a>
+                        </div>
+                        <div class="py-2">
+                            <a href="#" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50/80 smooth-transition">
+                                <i class="fas fa-sign-out-alt w-4 mr-3"></i>
+                                Sign out
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Mobile Search Bar (Hidden by default) -->
+    <div id="mobile-search-bar" class="hidden md:hidden px-4 pb-4">
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+            </div>
+            <input type="text"
+                class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                placeholder="Search anything...">
+        </div>
+    </div>
 </header>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile menu button animation
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        let mobileMenuOpen = false;
+
+        mobileMenuButton.addEventListener('click', function() {
+            mobileMenuOpen = !mobileMenuOpen;
+            this.classList.toggle('mobile-menu-active', mobileMenuOpen);
+        });
+
+
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', function() {
+                const isDark = document.documentElement.classList.toggle('dark');
+                document.cookie = `dark_mode=${isDark}; path=/; max-age=31536000`; // 1 year
+                this.innerHTML = isDark ?
+                    '<i class="fas fa-sun"></i>' :
+                    '<i class="fas fa-moon"></i>';
+            });
+        }
+
+        // Dropdown functionality (same as before)
+        function setupDropdown(buttonId, dropdownId) {
+            const button = document.getElementById(buttonId);
+            const dropdown = document.getElementById(dropdownId);
+            let isOpen = false;
+
+            if (!button || !dropdown) return;
+
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                isOpen = !isOpen;
+
+                if (isOpen) {
+                    dropdown.classList.remove('hidden', 'opacity-0', 'scale-95');
+                    dropdown.classList.add('opacity-100', 'scale-100');
+                } else {
+                    dropdown.classList.remove('opacity-100', 'scale-100');
+                    dropdown.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => dropdown.classList.add('hidden'), 150);
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (isOpen && !button.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('opacity-100', 'scale-100');
+                    dropdown.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => dropdown.classList.add('hidden'), 150);
+                    isOpen = false;
+                }
+            });
+
+            return {
+                button,
+                dropdown,
+                isOpen: () => isOpen
+            };
+        }
+
+        // Setup all dropdowns
+        const userDropdown = setupDropdown('user-menu-button', 'user-dropdown');
+        const notificationsDropdown = setupDropdown('notifications-btn', 'notifications-dropdown');
+        const quickActionsDropdown = setupDropdown('quick-actions-btn', 'quick-actions-dropdown');
+
+        // Notification functionality
+        const notificationItems = document.querySelectorAll('.notification-item');
+        const markAllReadBtn = document.getElementById('mark-all-read');
+
+        // Mark individual notification as read
+        notificationItems.forEach(item => {
+            item.addEventListener('click', function() {
+                if (this.classList.contains('notification-unread')) {
+                    const notificationId = this.getAttribute('data-notification-id');
+                    this.classList.remove('notification-unread');
+                    const unreadDot = this.querySelector('.w-2.h-2.bg-blue-500');
+                    if (unreadDot) unreadDot.remove();
+                    updateNotificationBadge();
+
+                    // Store in localStorage that this notification was read
+                    const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+                    readNotifications.push(notificationId);
+                    localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
+                }
+            });
+        });
+
+        // Mark all notifications as read
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.notification-unread').forEach(element => {
+                    element.classList.remove('notification-unread');
+                    const unreadDot = element.querySelector('.w-2.h-2.bg-blue-500');
+                    if (unreadDot) unreadDot.remove();
+
+                    // Store all notification IDs as read
+                    const notificationId = element.getAttribute('data-notification-id');
+                    const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+                    if (!readNotifications.includes(notificationId)) {
+                        readNotifications.push(notificationId);
+                    }
+                    localStorage.setItem('readNotifications', JSON.stringify(readNotifications));
+                });
+                updateNotificationBadge();
+            });
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.querySelector('.notification-pulse');
+            const unreadItems = document.querySelectorAll('.notification-unread').length;
+
+            if (unreadItems === 0 && badge) {
+                badge.remove();
+            } else if (badge) {
+                badge.textContent = unreadItems;
+            }
+
+            // Update the unread count in dropdown header
+            const unreadCountSpan = document.querySelector('#notifications-dropdown .text-xs.text-gray-500');
+            if (unreadCountSpan) {
+                unreadCountSpan.textContent = `${unreadItems} unread`;
+            }
+        }
+
+        // Check localStorage for read notifications and mark them
+        function markReadNotifications() {
+            const readNotifications = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+
+            document.querySelectorAll('.notification-item').forEach(item => {
+                const notificationId = item.getAttribute('data-notification-id');
+                if (readNotifications.includes(notificationId)) {
+                    item.classList.remove('notification-unread');
+                    const unreadDot = item.querySelector('.w-2.h-2.bg-blue-500');
+                    if (unreadDot) unreadDot.remove();
+                }
+            });
+
+            updateNotificationBadge();
+        }
+
+        // Initial marking of read notifications
+        markReadNotifications();
+
+        // Auto-refresh notifications every 5 minutes
+        setInterval(function() {
+            fetch('/Uni-PHP/Assignment/header.php?refresh=1')
+                .then(response => response.text())
+                .then(html => {
+                    // This would require more complex DOM manipulation
+                    // In a real app, you'd want to use an API endpoint that returns JSON
+                    console.log('Refreshed notifications');
+                })
+                .catch(error => console.error('Error refreshing notifications:', error));
+        }, 300000); // 5 minutes
+    });
+</script>

@@ -1,24 +1,32 @@
 <?php
 require_once '../components/config/db.php';
 require_once '../components/flash.php';
-session_start();
+require_once '../components/datatable.php';
 
-// Display flash message if exists
 $flash = flash();
 if ($flash) {
     require_once '../components/toast.php';
     showToast($flash['message'], $flash['type']);
 }
-$stmt = $conn->query("
-    SELECT category.*, floor.name as floor_name 
-    FROM category 
-    LEFT JOIN floor ON category.floor_id = floor.id 
-    ORDER BY category.created_at DESC
-");
-$categories = [];
-while ($row = $stmt->fetch_assoc()) {
-    $categories[] = $row;
-}
+
+$table = new DataTable($conn, [
+    'table' => 'category',
+    'primaryKey' => 'id',
+    'columns' => [
+        ['name' => 'id', 'label' => 'ID', 'nowrap' => true],
+        ['name' => 'name', 'label' => 'Name'],
+        ['name' => 'code', 'label' => 'Code', 'nowrap' => true],
+        ['name' => 'floor_name', 'label' => 'Floor', 'nowrap' => true],
+        ['name' => 'created_at', 'label' => 'Created At', 'format' => 'date', 'nowrap' => true],
+    ],
+    'joins' => ['LEFT JOIN floor ON category.floor_id = floor.id'],
+    'searchable' => ['category.name', 'category.code', 'floor.name'],
+    'addButton' => true,
+    'addButtonText' => 'Add Category',
+    'addButtonModal' => 'createCategoryModal',
+]);
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,7 +65,7 @@ while ($row = $stmt->fetch_assoc()) {
                 </div>
 
                 <!-- Table -->
-                <div class="bg-white rounded-lg shadow overflow-hidden">
+                <!-- <div class="bg-white rounded-lg shadow overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
@@ -102,7 +110,10 @@ while ($row = $stmt->fetch_assoc()) {
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </div> -->
+                <?php
+                $table->render();
+                ?>
             </main>
         </div>
     </div>
@@ -179,6 +190,7 @@ while ($row = $stmt->fetch_assoc()) {
         </script>
     <?php endif; ?>
     <script src="../js/modal.js"></script>
+    <script src="../js/search.js"></script>
 </body>
 
 </html>

@@ -2,7 +2,7 @@
 // read.php
 require_once '../components/config/db.php';
 require_once '../components/flash.php';
-
+require_once '../components/datatable.php';
 session_start();
 
 // Display flash message if exists
@@ -12,12 +12,22 @@ if ($flash) {
     showToast($flash['message'], $flash['type']);
 }
 
-// Get all floors
-$floors = [];
-$result = $conn->query("SELECT * FROM floor ORDER BY created_at");
-while ($row = $result->fetch_assoc()) {
-    $floors[] = $row;
-}
+$table = new DataTable($conn, [
+    'table' => 'floor',
+    'primaryKey' => 'id',
+    'columns' => [
+        ['name' => 'id', 'label' => 'ID', 'nowrap' => true],
+        ['name' => 'name', 'label' => 'Name'],
+        ['name' => 'code', 'label' => 'Code', 'nowrap' => true],
+        ['name' => 'note', 'label' => 'Note', 'format' => 'truncate', 'length' => 50],
+        ['name' => 'created_at', 'label' => 'Created At', 'format' => 'date', 'nowrap' => true],
+    ],
+    'searchable' => ['floor.name', 'floor.code', 'floor.note'],
+    'addButton' => true,
+    'addButtonText' => 'Add Floor',
+    'addButtonModal' => 'createFloorModal',
+]);
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,51 +61,11 @@ while ($row = $result->fetch_assoc()) {
                 </div>
 
                 <!-- Table -->
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Note</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <?php foreach ($floors as $floor): ?>
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= $floor['id'] ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?= htmlspecialchars($floor['name']) ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars($floor['code']) ?></td>
-                                        <td class="px-6 py-4 text-sm text-gray-500"><?= htmlspecialchars(substr($floor['note'], 0, 50)) . (strlen($floor['note']) > 50 ? '...' : '') ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= date('M d, Y', strtotime($floor['created_at'])) ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex items-center space-x-3">
-                                                <button
-                                                    class="text-blue-600 hover:text-blue-900 transition-colors duration-200"
-                                                    data-modal-fetch="editFloorModal"
-                                                    data-modal-url="update.php?id=<?= $floor['id'] ?>"
-                                                    data-modal-target="editFloorContent"
-                                                    title="Edit Floor">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button
-                                                    class="text-red-600 hover:text-red-900 transition-colors duration-200"
-                                                    data-modal-delete="deleteConfirmModal"
-                                                    data-modal-url="delete.php?id=<?= $floor['id'] ?>"
-                                                    title="Delete Floor">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                <div>
+                    <?php
+                    // Render the table
+                    $table->render();
+                    ?>
                 </div>
             </main>
         </div>
@@ -175,6 +145,7 @@ while ($row = $result->fetch_assoc()) {
     <?php endif; ?>
 
     <script src="../js/modal.js"></script>
+    <script src="../js/search.js"></script>
 </body>
 
 </html>

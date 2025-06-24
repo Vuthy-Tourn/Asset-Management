@@ -22,6 +22,7 @@ $table = new DataTable($conn, [
         ['name' => 'note', 'label' => 'Note', 'format' => 'truncate', 'length' => 50],
         ['name' => 'created_at', 'label' => 'Created At', 'format' => 'date', 'nowrap' => true],
     ],
+    'dateField' => 'floor.created_at',
     'searchable' => ['floor.name', 'floor.code', 'floor.note'],
     'addButton' => true,
     'addButtonText' => 'Add Floor',

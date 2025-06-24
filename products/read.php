@@ -11,74 +11,21 @@ if ($flash) {
     showToast($flash['message'], $flash['type']);
 }
 
-    // // Input validation and sanitization
-    // $page = max(1, (int)($_GET['page'] ?? 1));
-    // $limit = 10;
-    // $offset = ($page - 1) * $limit;
+    $categories = $conn->query("SELECT id, name FROM category")->fetch_all(MYSQLI_ASSOC);
+    $floors = $conn->query("SELECT id, name FROM floor")->fetch_all(MYSQLI_ASSOC);
 
-    // // Search functionality
-    // $search = $_GET['search'] ?? '';
-    // $searchCondition = '';
-    // $searchParams = [];
-
-    // if (!empty($search)) {
-    //     $searchCondition = "WHERE (products.name LIKE ? OR products.code LIKE ? OR category.name LIKE ?)";
-    //     $searchTerm = '%' . $search . '%';
-    //     $searchParams = [$searchTerm, $searchTerm, $searchTerm];
-    // }
-
-    // try {
-    //     // Get total count with search
-    //     $countSql = "SELECT COUNT(*) FROM products 
-    //                  LEFT JOIN category ON products.category_id = category.id 
-    //                  LEFT JOIN floor ON category.floor_id = floor.id 
-    //                  $searchCondition";
-
-    //     $countStmt = $conn->prepare($countSql);
-    //     if (!empty($searchParams)) {
-    //         $countStmt->bind_param(str_repeat('s', count($searchParams)), ...$searchParams);
-    //     }
-    //     $countStmt->execute();
-    //     $total = $countStmt->get_result()->fetch_row()[0];
-    //     $totalPages = ceil($total / $limit);
-
-    //     // Get products with pagination and search
-    //     $sql = "SELECT products.*, category.name as category_name, floor.name as floor_name 
-    //             FROM products 
-    //             LEFT JOIN category ON products.category_id = category.id 
-    //             LEFT JOIN floor ON category.floor_id = floor.id 
-    //             $searchCondition
-    //             ORDER BY products.created_at  
-    //             LIMIT ? OFFSET ?";
-
-    //     $stmt = $conn->prepare($sql);
-    //     $params = array_merge($searchParams, [$limit, $offset]);
-    //     $types = str_repeat('s', count($searchParams)) . 'ii';
-    //     $stmt->bind_param($types, ...$params);
-    //     $stmt->execute();
-    //     $result = $stmt->get_result();
-
-    //     $products = [];
-    //     while ($row = $result->fetch_assoc()) {
-    //         $products[] = $row;
-    //     }
-    // } catch (Exception $e) {
-    //     error_log("Database error: " . $e->getMessage());
-    //     $products = [];
-    //     $total = 0;
-    //     $totalPages = 0;
-    // }
-
-    $table = new DataTable($conn, [
-        'table' => 'products',
-        'primaryKey' => 'id',
-        'columns' => [
-            [
-                'name' => 'name',
-                'label' => 'Product Info',
-                'format' => 'custom',
-                'callback' => function ($row) {
-                    return '
+    $categoryOptions = ['' => 'All Categories'] + array_column($categories, 'name', 'id');
+    $floorOptions = ['' => 'All Floors'] + array_column($floors, 'name', 'id');
+$table = new DataTable($conn, [
+    'table' => 'products',
+    'primaryKey' => 'id',
+    'columns' => [
+        [
+            'name' => 'name',
+            'label' => 'Product Info',
+            'format' => 'custom',
+            'callback' => function ($row) {
+                return '
                     <div class="flex items-center">
                         <div class="flex-shrink-0 h-12 w-12">
                             <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
@@ -95,12 +42,12 @@ if ($flash) {
                         </div>
                     </div>
                 ';
-                }
-            ],
-            [
-                'name' => 'category_name',
-                'label' => 'Category',
-                'format' => 'badge',
+            }
+        ],
+        [
+            'name' => 'category_name',
+            'label' => 'Category',
+            'format' => 'badge',
             'colors' => [
                 'Desktop' => 'blue',  // Must match exactly or implement case-insensitive matching
                 'Laptop' => 'purple',
@@ -108,19 +55,33 @@ if ($flash) {
                 'Uncategorized' => 'gray'
             ],
             'default_color' => 'gray'
-            ],
-            ['name' => 'floor_name', 'label' => 'Floor', 'nowrap' => true],
-            ['name' => 'created_at', 'label' => 'Created', 'format' => 'date', 'nowrap' => true],
         ],
-        'joins' => [
-            'LEFT JOIN category ON products.category_id = category.id',
-            'LEFT JOIN floor ON category.floor_id = floor.id'
-        ],
-        'searchable' => ['products.name', 'products.code', 'category.name'],
-        'addButton' => true,
-        'addButtonText' => 'Add Product',
-        'addButtonModal' => 'createProductModal',
-    ]);
+        ['name' => 'floor_name', 'label' => 'Floor', 'nowrap' => true],
+        ['name' => 'created_at', 'label' => 'Created', 'format' => 'date', 'nowrap' => true],
+    ],
+    'joins' => [
+        'LEFT JOIN category ON products.category_id = category.id',
+        'LEFT JOIN floor ON category.floor_id = floor.id'
+    ],
+    'filterOptions' => [
+        'category_id' => $categoryOptions,
+        'floor_id' => $floorOptions
+    ],
+    'dateField' => 'products.created_at', // Specify if different from default
+    // Optional: customize time filter labels
+    'timeFilterOptions' => [
+        '' => 'All Time',
+        'today' => 'Today',
+        'week' => 'This Week', 
+        'month' => 'This Month',
+        'year' => 'This Year',
+        'recent' => 'Last 7 Days' // Add custom option
+    ],
+    'searchable' => ['products.name', 'products.code', 'category.name'],
+    'addButton' => true,
+    'addButtonText' => 'Add Product',
+    'addButtonModal' => 'createProductModal',
+]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -166,14 +127,14 @@ if ($flash) {
                     </button>
                 </div>
 
-              
+
 
                 <!-- Products Table -->
                 <div class="rounded-lg shadow-sm overflow-hidden">
-                  <?php
-                  $table -> render();
-                  ?>
-                      
+                    <?php
+                    $table->render();
+                    ?>
+
                 </div>
             </main>
         </div>

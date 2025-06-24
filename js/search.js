@@ -1,40 +1,93 @@
-// Search functionality
 document.addEventListener("DOMContentLoaded", function () {
   const searchInput = document.getElementById("searchInput");
   const searchForm = document.getElementById("searchForm");
   let searchTimer;
 
-  // Focus the input field on page load if it had focus before submit
-  if (sessionStorage.getItem("hadFocus") === "true") {
-    searchInput.focus();
-    // Restore cursor position if available
-    const cursorPos = parseInt(sessionStorage.getItem("cursorPos")) || 0;
-    searchInput.setSelectionRange(cursorPos, cursorPos);
-    sessionStorage.removeItem("hadFocus");
+  // Only proceed if this is a live search form
+  if (!searchForm || !searchForm.dataset.liveSearch) return;
+
+  // Save cursor position before any potential focus loss
+  function saveCursorPosition() {
+    sessionStorage.setItem(
+      "searchCursorPos",
+      searchInput.selectionStart.toString()
+    );
+  }
+
+  // Restore cursor position after AJAX update
+  function restoreCursorPosition() {
+    const savedPos = sessionStorage.getItem("searchCursorPos");
+    if (savedPos) {
+      searchInput.setSelectionRange(savedPos, savedPos);
+      sessionStorage.removeItem("searchCursorPos");
+    }
   }
 
   searchInput.addEventListener("input", function () {
+    saveCursorPosition();
     clearTimeout(searchTimer);
     searchTimer = setTimeout(function () {
-      // Save focus state and cursor position before submit
-      sessionStorage.setItem("hadFocus", "true");
-      sessionStorage.setItem(
-        "cursorPos",
-        searchInput.selectionStart.toString()
-      );
-      searchForm.submit();
-    }, 500);
+      performLiveSearch();
+    }, 500); // 500ms delay before search
   });
 
-  searchInput.addEventListener("keypress", function (e) {
+  searchInput.addEventListener("keydown", function (e) {
     if (e.key === "Enter") {
+      e.preventDefault(); // Prevent form submission
       clearTimeout(searchTimer);
-      sessionStorage.setItem("hadFocus", "true");
-      sessionStorage.setItem(
-        "cursorPos",
-        searchInput.selectionStart.toString()
-      );
-      searchForm.submit();
+      performLiveSearch();
     }
   });
+
+  function performLiveSearch() {
+    const formData = new FormData(searchForm);
+    formData.append("ajax", "1"); // Add AJAX flag
+
+    // Show loading indicator if you have one
+    // document.getElementById('searchLoading').classList.remove('hidden');
+
+    fetch(window.location.href + "?" + new URLSearchParams(formData), {
+      method: "GET",
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    })
+      .then((response) => response.text())
+      .then((html) => {
+        // Replace just the table content
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const newTable = doc.querySelector(".overflow-x-auto");
+
+        if (newTable) {
+          document.querySelector(".overflow-x-auto").outerHTML =
+            newTable.outerHTML;
+        }
+
+        // Restore focus and cursor position
+        searchInput.focus();
+        restoreCursorPosition();
+      })
+      .catch((error) => {
+        console.error("Search error:", error);
+      })
+      .finally(() => {
+        // Hide loading indicator if you have one
+        // document.getElementById('searchLoading').classList.add('hidden');
+      });
+  }
+});
+document.addEventListener("DOMContentLoaded", function () {
+  // Handle filter form submission
+  const filterForm = document.getElementById("filterForm");
+  if (filterForm) {
+    // Submit form when any filter changes
+    filterForm.querySelectorAll("select").forEach((select) => {
+      select.addEventListener("change", function () {
+        // Reset to page 1 when filters change
+        filterForm.querySelector('input[name="page"]').value = 1;
+        filterForm.submit();
+      });
+    });
+  }
 });

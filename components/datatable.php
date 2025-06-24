@@ -10,7 +10,9 @@ class DataTable
     private $total = 0;
     private $totalPages = 0;
     private $currentPage = 1;
+    private $filters = [];
     private $searchTerm = '';
+    private $timeFilter = '';
 
     public function __construct($dbConnection, $config = [])
     {
@@ -21,66 +23,97 @@ class DataTable
             'columns' => [],
             'joins' => [],
             'searchable' => [],
+            'filterOptions' => [], // Define filter options for dropdowns
+            // Add time filter to config defaults
+            'timeFilterOptions' => [
+                '' => 'All Time',
+                'today' => 'Today',
+                'week' => 'This Week',
+                'month' => 'This Month',
+                'year' => 'This Year'
+            ],
+            'dateField' => 'created_at', // Default date field to filter on
             'defaultOrder' => 'created_at DESC',
             'perPage' => 10,
             'actions' => true,
             'emptyMessage' => 'No records found',
-            'emptySearchMessage' => 'No results found for your search',
+            'emptySearchMessage' => 'No results found',
             'addButton' => false,
             'addButtonText' => 'Add New',
             'addButtonModal' => '',
-            'customFilters' => [],
         ], $config);
+
+        $this->processFilters();
     }
 
-    public function render()
+    private function processFilters()
     {
-        $this->handleFlashMessage();
-        $this->processRequest();
-        $this->fetchData();
-        $this->renderSearchAndFilters();
-        $this->renderTable();
-    }
-
-    private function handleFlashMessage()
-    {
-        $flash = flash();
-        if ($flash) {
-            require_once '../components/toast.php';
-            showToast($flash['message'], $flash['type']);
+        foreach ($this->config['filterOptions'] as $filterName => $options) {
+            if (isset($_GET[$filterName]) && $_GET[$filterName] !== '') {
+                $this->filters[$filterName] = $_GET[$filterName];
+            }
         }
-    }
+        // Capture search term
+        if (isset($_GET['search']) && trim($_GET['search']) !== '') {
+            $this->searchTerm = trim($_GET['search']);
+        }
 
-    private function processRequest()
-    {
-        $this->currentPage = max(1, (int)($_GET['page'] ?? 1));
-        $this->searchTerm = trim($_GET['search'] ?? '');
+       // Time filter processing - ensure it's always set if in GET params
+    $this->timeFilter = $_GET['time_filter'] ?? '';
     }
 
     private function fetchData()
     {
         $offset = ($this->currentPage - 1) * $this->config['perPage'];
-        $searchCondition = '';
-        $searchParams = [];
+        $whereClauses = [];
+        $params = [];
+        $types = '';
 
-        // Build search condition if search term exists
+        // Build filter conditions
+        foreach ($this->filters as $column => $value) {
+            if ($value !== '') { // Only add if value is not empty
+                $whereClauses[] = "$column = ?";
+                $params[] = $value;
+                $types .= 's';
+            }
+        }
+
+        // Build search conditions
         if (!empty($this->searchTerm) && !empty($this->config['searchable'])) {
             $searchParts = [];
             foreach ($this->config['searchable'] as $column) {
                 $searchParts[] = "$column LIKE ?";
-                $searchParams[] = '%' . $this->searchTerm . '%';
+                $params[] = '%' . $this->searchTerm . '%';
+                $types .= 's';
             }
-            $searchCondition = 'WHERE ' . implode(' OR ', $searchParts);
+            $whereClauses[] = '(' . implode(' OR ', $searchParts) . ')';
         }
 
-        // Add custom filters if any
-        foreach ($this->config['customFilters'] as $filter => $value) {
-            if (isset($_GET[$filter]) && !empty($_GET[$filter])) {
-                $searchCondition .= empty($searchCondition) ? 'WHERE ' : ' AND ';
-                $searchCondition .= "$value = ?";
-                $searchParams[] = $_GET[$filter];
+        // Add time filter conditions - MODIFIED SECTION
+        if (!empty($this->timeFilter)) {
+            $dateField = $this->config['dateField'] ?? 'created_at';
+
+            switch ($this->timeFilter) {
+                case 'today':
+                    $whereClauses[] = "DATE($dateField) = CURDATE()";
+                    break;
+                case 'week':
+                    $whereClauses[] = "YEARWEEK($dateField, 1) = YEARWEEK(CURDATE(), 1)";
+                    break;
+                case 'month':
+                    $whereClauses[] = "MONTH($dateField) = MONTH(CURDATE()) AND YEAR($dateField) = YEAR(CURDATE())";
+                    break;
+                case 'year':
+                    $whereClauses[] = "YEAR($dateField) = YEAR(CURDATE())";
+                    break;
+                case 'latest':
+                    // No WHERE condition, just change the order
+                    $this->config['defaultOrder'] = "$dateField DESC";
+                    break;
             }
         }
+
+        $whereCondition = empty($whereClauses) ? '' : 'WHERE ' . implode(' AND ', $whereClauses);
 
         try {
             // Get total count
@@ -90,11 +123,11 @@ class DataTable
                     $countSql .= " $join";
                 }
             }
-            $countSql .= " $searchCondition";
+            $countSql .= " $whereCondition";
 
             $countStmt = $this->conn->prepare($countSql);
-            if (!empty($searchParams)) {
-                $countStmt->bind_param(str_repeat('s', count($searchParams)), ...$searchParams);
+            if (!empty($params)) {
+                $countStmt->bind_param($types, ...$params);
             }
             $countStmt->execute();
             $this->total = $countStmt->get_result()->fetch_row()[0];
@@ -104,7 +137,6 @@ class DataTable
             $sql = "SELECT {$this->config['table']}.*";
             if (!empty($this->config['joins'])) {
                 foreach ($this->config['joins'] as $join) {
-                    // Extract joined table name for column selection
                     if (preg_match('/LEFT JOIN (\w+)/', $join, $matches)) {
                         $joinedTable = $matches[1];
                         $sql .= ", $joinedTable.name as {$joinedTable}_name";
@@ -119,14 +151,18 @@ class DataTable
                 }
             }
 
-            $sql .= " $searchCondition";
+            $sql .= " $whereCondition";
             $sql .= " ORDER BY {$this->config['defaultOrder']}";
             $sql .= " LIMIT ? OFFSET ?";
 
             $stmt = $this->conn->prepare($sql);
-            $params = array_merge($searchParams, [$this->config['perPage'], $offset]);
-            $types = str_repeat('s', count($searchParams)) . 'ii';
-            $stmt->bind_param($types, ...$params);
+            $params[] = $this->config['perPage'];
+            $params[] = $offset;
+            $types .= 'ii';
+
+            if (!empty($params)) {
+                $stmt->bind_param($types, ...$params);
+            }
             $stmt->execute();
             $result = $stmt->get_result();
 
@@ -142,13 +178,73 @@ class DataTable
         }
     }
 
-    private function renderSearchAndFilters()
+    private function renderFilters()
     {
 ?>
+        <div class="rounded-lg shadow-sm p-4 mb-6 bg-gray-50">
+            <form id="filterForm" method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <?php if (!empty($this->config['filterOptions'])): ?>
+                    <?php foreach ($this->config['filterOptions'] as $filterName => $options): ?>
+                        <div>
+                            <label for="<?= $filterName ?>" class="block text-sm font-medium text-gray-700 mb-1">
+                                Filter by <?= ucfirst(str_replace('_', ' ', $filterName)) ?>
+                            </label>
+                            <select
+                                id="<?= $filterName ?>"
+                                name="<?= $filterName ?>"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                                <?php foreach ($this->getFilterOptions($filterName) as $value => $label): ?>
+                                    <option value="<?= htmlspecialchars($value) ?>"
+                                        <?= isset($this->filters[$filterName]) && $this->filters[$filterName] == $value ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($label) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+
+                <!-- Time Filter Dropdown -->
+                <div>
+                    <label for="time_filter" class="block text-sm font-medium text-gray-700 mb-1">
+                        Time Period
+                    </label>
+                    <select
+                        id="time_filter"
+                        name="time_filter"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                        <?php foreach ($this->config['timeFilterOptions'] as $value => $label): ?>
+                            <option value="<?= htmlspecialchars($value) ?>"
+                                <?= $this->timeFilter === $value ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($label) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <!-- Hidden fields to maintain state -->
+                <?php if (!empty($this->searchTerm)): ?>
+                    <input type="hidden" name="search" value="<?= htmlspecialchars($this->searchTerm) ?>">
+                <?php endif; ?>
+                <input type="hidden" name="page" value="1">
+                <button type="submit" class="hidden">Apply Filters</button>
+            </form>
+        </div>
+    <?php
+    }
+
+    private function getFilterOptions($filterName)
+    {
+        // You can customize this method to fetch options from database if needed
+        return $this->config['filterOptions'][$filterName];
+    }
+
+    private function renderSearch()
+    {
+    ?>
         <div class="rounded-lg shadow-sm p-4 mb-6">
-            <form id="searchForm" class="flex flex-col sm:flex-row gap-4 items-center"
-                data-live-search="true"
-                data-table="<?= htmlspecialchars($this->config['table']) ?>">
+            <form id="searchForm" method="GET" action="" class="flex flex-col sm:flex-row gap-4 items-center"
+                data-live-search="true">
                 <div class="relative flex-1 max-w-md">
                     <input
                         type="text"
@@ -157,22 +253,40 @@ class DataTable
                         value="<?= htmlspecialchars($this->searchTerm) ?>"
                         placeholder="Search <?= $this->config['table'] ?>..."
                         class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                        data-live-search-input>
+                        autocomplete="off">
                     <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+                    <!-- Add loading spinner if needed -->
+                    <!-- <div id="searchLoading" class="hidden absolute right-3 top-4">
+                    <i class="fas fa-spinner fa-spin text-gray-400"></i>
+                </div> -->
                 </div>
-                <?php if ($this->config['addButton']): ?>
-                    <button
-                        type="button"
-                        class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg"
-                        data-modal-fetch="<?= $this->config['addButtonModal'] ?>"
-                        data-modal-url="create.php"
-                        data-modal-target="<?= $this->config['addButtonModal'] ?>Content">
-                        <i class="fas fa-plus mr-2"></i><?= $this->config['addButtonText'] ?>
-                    </button>
-                <?php endif; ?>
+                <?php foreach ($this->filters as $name => $value): ?>
+                    <input type="hidden" name="<?= htmlspecialchars($name) ?>" value="<?= htmlspecialchars($value) ?>">
+                <?php endforeach; ?>
             </form>
         </div>
     <?php
+    }
+
+    public function render()
+    {
+        $this->fetchData();
+        // Handle AJAX requests
+        if (!empty($_GET['ajax']) || isset($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+            ob_start();
+            $this->renderTable();
+            $output = ob_get_clean();
+
+            if (!empty($_GET['ajax'])) {
+                echo $output;
+                exit;
+            }
+            return $output;
+        }
+
+        $this->renderSearch();
+        $this->renderFilters();
+        $this->renderTable();
     }
 
     private function renderTable()
@@ -306,33 +420,10 @@ class DataTable
                 case 'datetime':
                     return date('M d, Y H:i', strtotime($value));
                 case 'badge':
-                    // Handle empty/null values and normalize case
-                    $displayValue = empty($value) ? 'Uncategorized' : trim($value);
-                    $searchValue = strtolower($displayValue);
-
-                    // Find matching color - check exact match first, then case-insensitive
-                    $color = null;
-                    foreach ($column['colors'] as $key => $val) {
-                        if (strtolower($key) === $searchValue) {
-                            $color = $val;
-                            break;
-                        }
-                    }
-
-                    // Fallback to default if no match found
-                    $color = $color ?? ($column['default_color'] ?? 'gray');
-
-                    // Support both simple color names and full class strings
-                    if (is_string($color) && strpos($color, 'bg-') !== 0) {
-                        $color = "bg-{$color}-100 text-{$color}-800 border-{$color}-300";
-                    }
-
-                    return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' . $color . ' border">' .
-                        htmlspecialchars($displayValue) .
+                    $color = $column['colors'][$value] ?? 'gray';
+                    return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-' . $color . '-100 text-' . $color . '-800">' .
+                        htmlspecialchars($value) .
                         '</span>';
-                case 'truncate':
-                    $length = $column['length'] ?? 50;
-                    return htmlspecialchars(substr($value, 0, $length) . (strlen($value) > $length ? '...' : ''));
                 case 'custom':
                     return call_user_func($column['callback'], $row);
                 default:

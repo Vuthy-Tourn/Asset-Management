@@ -8,7 +8,9 @@ if ($flash) {
     require_once '../components/toast.php';
     showToast($flash['message'], $flash['type']);
 }
+    $floors = $conn->query("SELECT id, name FROM floor")->fetch_all(MYSQLI_ASSOC);
 
+    $floorOptions = ['' => 'All Floors'] + array_column($floors, 'name', 'id');
 $table = new DataTable($conn, [
     'table' => 'category',
     'primaryKey' => 'id',
@@ -20,6 +22,10 @@ $table = new DataTable($conn, [
         ['name' => 'created_at', 'label' => 'Created At', 'format' => 'date', 'nowrap' => true],
     ],
     'joins' => ['LEFT JOIN floor ON category.floor_id = floor.id'],
+    'filterOptions' => [
+        'floor_id' => $floorOptions
+        ],
+    'dateField' => 'category.created_at',
     'searchable' => ['category.name', 'category.code', 'floor.name'],
     'addButton' => true,
     'addButtonText' => 'Add Category',
@@ -64,53 +70,6 @@ $table = new DataTable($conn, [
                     </button>
                 </div>
 
-                <!-- Table -->
-                <!-- <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Floor</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <?php foreach ($categories as $category): ?>
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= $category['id'] ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?= htmlspecialchars($category['name']) ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars($category['code']) ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars($category['floor_name'] ?? 'N/A') ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= date('M d, Y', strtotime($category['created_at'])) ?></td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex items-center space-x-3">
-                                                <button
-                                                    class="text-blue-600 hover:text-blue-900 transition-colors duration-200"
-                                                    data-modal-fetch="editCategoryModal"
-                                                    data-modal-url="update.php?id=<?= $category['id'] ?>"
-                                                    data-modal-target="editCategoryContent"
-                                                    title="Edit Category">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button
-                                                    class="text-red-600 hover:text-red-900 transition-colors duration-200"
-                                                    data-modal-delete="deleteConfirmModal"
-                                                    data-modal-url="delete.php?id=<?= $category['id'] ?>"
-                                                    title="Delete Category">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div> -->
                 <?php
                 $table->render();
                 ?>

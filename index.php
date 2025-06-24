@@ -263,7 +263,7 @@ function getActivityStyle($type)
                     </div>
                 </div>
 
-                <!-- Dynamic Recent Activity -->
+                <!-- Dynamic Recent Activity with Pagination -->
                 <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-8 lg:p-10 border border-white/30 relative overflow-hidden">
                     <div class="flex items-center justify-between mb-8">
                         <div>
@@ -271,55 +271,78 @@ function getActivityStyle($type)
                             <p class="text-slate-600 text-sm">Latest updates from your system</p>
                         </div>
                         <div class="flex items-center space-x-4">
-                            <div class="p-3 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg">
-                                <i class="fas fa-clock text-xl"></i>
-                            </div>
-                            <button class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-colors duration-200">
-                                <i class="fas fa-sync-alt mr-2"></i>Refresh
+                            <button class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-colors duration-200" onclick="refreshActivity()">
+                                <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
                     </div>
 
-                    <div class="space-y-4">
-                        <?php if (empty($recentActivity)): ?>
-                            <div class="text-center py-12">
-                                <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <i class="fas fa-inbox text-3xl text-slate-400"></i>
+                    <!-- Activity Container -->
+                    <div id="activity-container">
+                        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4" id="activity-list">
+                            <!-- PHP Activity Items Will Be Rendered Here -->
+                            <?php
+                            // Calculate pagination
+                            $itemsPerPage = 6;
+                            $currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+                            $totalItems = count($recentActivity ?? []);
+                            $totalPages = ceil($totalItems / $itemsPerPage);
+                            $startIndex = ($currentPage - 1) * $itemsPerPage;
+                            $currentPageItems = array_slice($recentActivity ?? [], $startIndex, $itemsPerPage);
+                            ?>
+
+                            <?php if (empty($recentActivity)): ?>
+                                <div class="text-center py-12">
+                                    <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <i class="fas fa-inbox text-3xl text-slate-400"></i>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-slate-600 mb-2">No Recent Activity</h3>
+                                    <p class="text-slate-500">Start adding floors, categories, or products to see activity here.</p>
                                 </div>
-                                <h3 class="text-lg font-semibold text-slate-600 mb-2">No Recent Activity</h3>
-                                <p class="text-slate-500">Start adding floors, categories, or products to see activity here.</p>
+                            <?php else: ?>
+                                <?php foreach ($currentPageItems as $index => $activity): ?>
+                                    <?php $style = getActivityStyle($activity['type']); ?>
+                                    <div class="group flex items-start p-4 rounded-2xl bg-gradient-to-r <?= $style['bg'] ?> border <?= $style['border'] ?> hover:shadow-lg transition-all duration-300 animate-fade-in" style="animation-delay: <?= $index * 0.1 ?>s;">
+                                        <div class="flex-shrink-0 p-4 rounded-2xl bg-gradient-to-br from-<?= $style['color'] ?>-500 to-<?= $style['color'] ?>-600 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                            <i class="fas fa-<?= $style['icon'] ?> text-lg"></i>
+                                        </div>
+                                        <div class="ml-6 flex-1">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <p class="font-bold text-slate-800 text-lg">
+                                                    New <?= ucfirst($activity['type']) ?> <?= $activity['action'] ?>
+                                                </p>
+                                                <span class="px-3 py-1 rounded-full text-xs font-bold <?= $style['badge'] ?> uppercase tracking-wide">
+                                                    <?= ucfirst($activity['action']) ?>
+                                                </span>
+                                            </div>
+                                            <p class="text-slate-700 font-medium mb-3">
+                                                "<?= htmlspecialchars($activity['name']) ?>" has been successfully <?= $activity['action'] ?>
+                                            </p>
+                                            <div class="flex items-center justify-between">
+                                                <p class="text-sm text-slate-500 flex items-center">
+                                                    <i class="fas fa-clock mr-2"></i>
+                                                    <?= timeAgo($activity['created_at']) ?>
+                                                </p>
+                                                <p class="text-xs text-slate-400">
+                                                    <?= date('M d, Y \a\t g:i A', strtotime($activity['created_at'])) ?>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Pagination Component -->
+                        <?php if (!empty($recentActivity) && $totalPages > 1): ?>
+                            <div class="mt-8">
+                                <div class="pagination-container"
+                                    data-current-page="<?= $currentPage ?>"
+                                    data-total-pages="<?= $totalPages ?>"
+                                    data-total-items="<?= $totalItems ?>">
+                                    <!-- Pagination will be rendered by JavaScript -->
+                                </div>
                             </div>
-                        <?php else: ?>
-                            <?php foreach ($recentActivity as $index => $activity): ?>
-                                <?php $style = getActivityStyle($activity['type']); ?>
-                                <div class="group flex items-start p-6 rounded-2xl bg-gradient-to-r <?= $style['bg'] ?> border <?= $style['border'] ?> hover:shadow-lg transition-all duration-300 animate-fade-in" style="animation-delay: <?= $index * 0.1 ?>s;">
-                                    <div class="flex-shrink-0 p-4 rounded-2xl bg-gradient-to-br from-<?= $style['color'] ?>-500 to-<?= $style['color'] ?>-600 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-                                        <i class="fas fa-<?= $style['icon'] ?> text-lg"></i>
-                                    </div>
-                                    <div class="ml-6 flex-1">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <p class="font-bold text-slate-800 text-lg">
-                                                New <?= ucfirst($activity['type']) ?> <?= $activity['action'] ?>
-                                            </p>
-                                            <span class="px-3 py-1 rounded-full text-xs font-bold <?= $style['badge'] ?> uppercase tracking-wide">
-                                                <?= ucfirst($activity['action']) ?>
-                                            </span>
-                                        </div>
-                                        <p class="text-slate-700 font-medium mb-3">
-                                            "<?= htmlspecialchars($activity['name']) ?>" has been successfully <?= $activity['action'] ?>
-                                        </p>
-                                        <div class="flex items-center justify-between">
-                                            <p class="text-sm text-slate-500 flex items-center">
-                                                <i class="fas fa-clock mr-2"></i>
-                                                <?= timeAgo($activity['created_at']) ?>
-                                            </p>
-                                            <p class="text-xs text-slate-400">
-                                                <?= date('M d, Y \a\t g:i A', strtotime($activity['created_at'])) ?>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
 
@@ -415,6 +438,93 @@ function getActivityStyle($type)
                 }
             });
 
+            const floorCtx = document.getElementById('floorChart').getContext('2d');
+            new Chart(floorCtx, {
+                type: 'bar',
+                data: {
+                    labels: floorLabels,
+                    datasets: [{
+                        label: 'Categories per Floor',
+                        data: floorData,
+                        backgroundColor: modernColors.slice(2, floorData.length),
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        hoverBackgroundColor: modernColors.slice(0, floorData.length).map(color => color + 'CC'),
+                        hoverBorderWidth: 2,
+                        hoverBorderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Hide legend for bar chart
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1,
+                            cornerRadius: 12,
+                            displayColors: true,
+                            titleFont: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y} categories`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#6B7280',
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#374151',
+                                font: {
+                                    size: 12,
+                                    weight: '600'
+                                },
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeOutBounce'
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
             // Number counter animation
             function animateCounters() {
                 const counters = document.querySelectorAll('.number-counter');
@@ -530,7 +640,7 @@ function getActivityStyle($type)
                 // Remove spinner after chart loads
                 setTimeout(() => {
                     spinner.remove();
-                }, 2000);
+                }, 1000);
             });
 
             // Add real-time clock update
@@ -587,6 +697,8 @@ function getActivityStyle($type)
             console.log('🚀 Dashboard loaded successfully!');
         });
     </script>
+    <script src="./js/index.js"></script>
+    <script src="./js/pagination.js"></script>
 </body>
 
 </html>

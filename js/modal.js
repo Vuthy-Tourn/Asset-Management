@@ -49,16 +49,41 @@ class ModalManager {
 
       button.addEventListener("click", async () => {
         try {
-          this.showLoader(button);
+          const targetElement = document.getElementById(target);
+          if (!targetElement) {
+            throw new Error(`Modal target element #${target} not found`);
+          }
+
+          // Show loading state if elements exist
+          const loadingContent =
+            targetElement.querySelector(".loading-content");
+          const actualContent = targetElement.querySelector(".actual-content");
+
+          if (loadingContent) loadingContent.classList.remove("hidden");
+          if (actualContent) actualContent.classList.add("hidden");
+
           const response = await fetch(url);
+          if (!response.ok) throw new Error("Network response was not ok");
+
           const html = await response.text();
-          document.getElementById(target).innerHTML = html;
+
+          // Insert into actual content area if exists, otherwise directly into target
+          const contentTarget = actualContent || targetElement;
+          contentTarget.innerHTML = html;
+          contentTarget.classList.remove("hidden");
+
+          if (loadingContent) loadingContent.classList.add("hidden");
+
           this.open(modalId);
         } catch (error) {
           console.error("Error loading modal content:", error);
-          this.showNotification("Error loading content", "error");
-        } finally {
-          this.hideLoader(button);
+          // Show error in modal
+          const errorMessage = `<div class="p-4 text-red-600">Error loading content: ${error.message}</div>`;
+          const targetElement = document.getElementById(target);
+          if (targetElement) {
+            targetElement.innerHTML = errorMessage;
+          }
+          this.open(modalId);
         }
       });
     });
@@ -142,7 +167,7 @@ class ModalManager {
       if (this.currentOpenModal === modalId) {
         this.currentOpenModal = null;
       }
-    }
+    }z
   }
 
   showLoader(element) {

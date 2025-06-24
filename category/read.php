@@ -18,7 +18,19 @@ $table = new DataTable($conn, [
         ['name' => 'id', 'label' => 'ID', 'nowrap' => true],
         ['name' => 'name', 'label' => 'Name'],
         ['name' => 'code', 'label' => 'Code', 'nowrap' => true],
-        ['name' => 'floor_name', 'label' => 'Floor', 'nowrap' => true],
+        [
+            'name' => 'floor_name',
+            'label' => 'Floor',
+            'format' => 'badge',
+            'colors' => [
+                'Ground' => 'purple',  // Must match exactly or implement case-insensitive matching
+                'First' => 'cyan',
+                'Second' => 'yellow',
+                'Third' => 'green'
+            ],
+            'default_color' => 'gray',
+            'nowrap' => true
+        ],
         ['name' => 'created_at', 'label' => 'Created At', 'format' => 'date', 'nowrap' => true],
     ],
     'joins' => ['LEFT JOIN floor ON category.floor_id = floor.id'],

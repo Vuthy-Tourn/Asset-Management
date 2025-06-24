@@ -33,7 +33,7 @@ class DataTable
                 'year' => 'This Year'
             ],
             'dateField' => 'created_at', // Default date field to filter on
-            'defaultOrder' => 'created_at DESC',
+            'defaultOrder' => 'created_at ASC',
             'perPage' => 10,
             'actions' => true,
             'emptyMessage' => 'No records found',

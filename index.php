@@ -22,31 +22,6 @@ $floorsData = $conn->query("
     GROUP BY f.id
 ")->fetch_all(MYSQLI_ASSOC);
 
-// Get recent activity data (last 10 activities)
-$recentActivity = $conn->query("
-    (SELECT 'floor' as type, name, created_at, 'added' as action, 'building' as icon FROM floor ORDER BY created_at DESC LIMIT 5)
-    UNION ALL
-    (SELECT 'category' as type, name, created_at, 'added' as action, 'tags' as icon FROM category ORDER BY created_at DESC LIMIT 5)
-    UNION ALL
-    (SELECT 'product' as type, name, created_at, 'added' as action, 'box' as icon FROM products ORDER BY created_at DESC LIMIT 5)
-    ORDER BY created_at DESC
-    LIMIT 10
-")->fetch_all(MYSQLI_ASSOC);
-
-// Helper function to get activity color and icon
-function getActivityStyle($type)
-{
-    switch ($type) {
-        case 'floor':
-            return ['color' => 'blue', 'icon' => 'building', 'bg' => 'from-blue-50 to-indigo-50', 'border' => 'border-blue-100', 'badge' => 'bg-blue-100 text-blue-800'];
-        case 'category':
-            return ['color' => 'emerald', 'icon' => 'tags', 'bg' => 'from-emerald-50 to-green-50', 'border' => 'border-emerald-100', 'badge' => 'bg-emerald-100 text-emerald-800'];
-        case 'product':
-            return ['color' => 'purple', 'icon' => 'boxes', 'bg' => 'from-purple-50 to-violet-50', 'border' => 'border-purple-100', 'badge' => 'bg-purple-100 text-purple-800'];
-        default:
-            return ['color' => 'gray', 'icon' => 'circle', 'bg' => 'from-gray-50 to-slate-50', 'border' => 'border-gray-100', 'badge' => 'bg-gray-100 text-gray-800'];
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -107,38 +82,85 @@ function getActivityStyle($type)
             <main class="p-4 sm:p-6 lg:p-8 space-y-8">
                 <!-- Hero Welcome Section -->
                 <div class="animate-fade-in">
-                    <div class="animated-gradient rounded-3xl p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
-                        <!-- Floating decorative elements -->
-                        <div class="absolute top-4 right-4 w-32 h-32 bg-white/10 rounded-full blur-xl animate-float"></div>
-                        <div class="absolute bottom-8 left-8 w-24 h-24 bg-white/5 rounded-full blur-lg animate-float" style="animation-delay: 1s;"></div>
+                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 lg:p-10 text-white shadow-lg relative overflow-hidden">
+                        <!-- Subtle grid pattern background -->
+                        <div class="absolute inset-0 opacity-10" style="
+            background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+            background-size: 20px 20px;
+        "></div>
 
-                        <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between">
-                            <div class="mb-6 lg:mb-0">
-                                <h1 class="text-3xl lg:text-5xl font-bold mb-4 leading-tight">
-                                    Welcome back! 👋
+                        <!-- Animated dots -->
+                        <div class="absolute top-0 right-0 w-32 h-32 -mt-16 -mr-16">
+                            <div class="absolute top-1/2 left-1/2 w-16 h-16 bg-white/10 rounded-full blur-lg animate-pulse" style="
+                animation-delay: 0.5s;
+            "></div>
+                        </div>
+
+                        <div class="relative z-10 flex flex-col lg:flex-row items-start gap-8">
+                            <!-- Main content -->
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                                    <span class="text-sm font-medium bg-white/10 px-3 py-1 rounded-full">SYSTEM OPERATIONAL</span>
+                                </div>
+
+                                <h1 class="text-3xl lg:text-4xl xl:text-5xl font-bold mb-4 leading-tight">
+                                    Welcome back, <span class="text-indigo-200">Admin</span> 👋
                                 </h1>
-                                <p class="text-white/90 text-lg lg:text-xl max-w-2xl leading-relaxed">
-                                    Monitor your asset ecosystem with real-time insights and comprehensive analytics.
+
+                                <p class="text-lg text-white/90 mb-6 max-w-2xl">
+                                    Your complete asset management dashboard with real-time monitoring and analytics.
                                 </p>
-                                <div class="flex flex-wrap gap-4 mt-6 text-gray-800">
-                                    <div class="glass-effect rounded-xl px-4 py-2">
-                                        <span class="text-sm font-medium">📊 Live Data</span>
+
+                                <!-- Stats badges -->
+                                <div class="flex flex-wrap gap-3">
+                                    <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20">
+                                        <i class="fas fa-clock text-indigo-200"></i>
+                                        <span class="text-sm"><?= date('M d, Y') ?></span>
                                     </div>
-                                    <div class="glass-effect rounded-xl px-4 py-2">
-                                        <span class="text-sm font-medium">🔄 Auto-Updated</span>
+                                    <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20">
+                                        <i class="fas fa-database text-indigo-200"></i>
+                                        <span class="text-sm">Live Data Sync</span>
                                     </div>
-                                    <div class="glass-effect rounded-xl px-4 py-2">
-                                        <span class="text-sm font-medium">⚡ Real-time</span>
+                                    <div class="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-lg border border-white/20">
+                                        <i class="fas fa-bolt text-indigo-200"></i>
+                                        <span class="text-sm">Real-time Updates</span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="glass-effect rounded-2xl p-6 text-center min-w-[200px] text-gray-800">
-                                <p class="text-sm mb-2">System Status</p>
-                                <div class="flex items-center justify-center mb-2">
-                                    <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse mr-2"></div>
-                                    <span class="text-lg font-bold">All Systems Operational</span>
+
+                            <!-- Status card -->
+                            <div class="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-5 lg:p-6 w-full lg:w-auto lg:min-w-[280px]">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-semibold text-white/90">System Status</h3>
+                                    <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                                 </div>
-                                <p class="text-sm">Last updated: <?= date('M d, Y H:i') ?></p>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <p class="text-xs text-white/70 mb-1">Last Updated</p>
+                                        <p class="font-medium"><?php
+                                                                date_default_timezone_set('Asia/Phnom_Penh');
+                                                                echo date('g:i A'); // Will now show Cambodia time
+                                                                ?></p>
+                                    </div>
+
+                                    <div>
+                                        <p class="text-xs text-white/70 mb-1">Active Modules</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span class="text-xs bg-white/20 px-2 py-1 rounded">Floors</span>
+                                            <span class="text-xs bg-white/20 px-2 py-1 rounded">Categories</span>
+                                            <span class="text-xs bg-white/20 px-2 py-1 rounded">Products</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-4 border-t border-white/10">
+                                        <button class="w-full flex items-center justify-center gap-2 bg-white text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                                            <i class="fas fa-sync-alt"></i>
+                                            Refresh Data
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -238,7 +260,9 @@ function getActivityStyle($type)
                                 </div>
                             </div>
                             <div class="relative min-h-[400px]">
-                                <canvas id="categoryChart"></canvas>
+                                <canvas id="categoryChart"
+                                    data-labels='<?= json_encode(array_column($categoriesData, 'name')) ?>'
+                                    data-values='<?= json_encode(array_column($categoriesData, 'product_count')) ?>'></canvas>
                             </div>
                         </div>
                     </div>
@@ -257,448 +281,20 @@ function getActivityStyle($type)
                                 </div>
                             </div>
                             <div class="relative min-h-[400px]">
-                                <canvas id="floorChart"></canvas>
+                                <canvas id="floorChart"
+                                    data-labels='<?= json_encode(array_column($floorsData, 'name')) ?>'
+                                    data-values='<?= json_encode(array_column($floorsData, 'category_count')) ?>'></canvas>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Dynamic Recent Activity with Pagination -->
-                <div class="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-8 lg:p-10 border border-white/30 relative overflow-hidden">
-                    <div class="flex items-center justify-between mb-8">
-                        <div>
-                            <h2 class="text-2xl lg:text-3xl font-bold text-slate-800 mb-2">Recent Activity</h2>
-                            <p class="text-slate-600 text-sm">Latest updates from your system</p>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <button class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium transition-colors duration-200" onclick="refreshActivity()">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Activity Container -->
-                    <div id="activity-container">
-                        <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4" id="activity-list">
-                            <!-- PHP Activity Items Will Be Rendered Here -->
-                            <?php
-                            // Calculate pagination
-                            $itemsPerPage = 6;
-                            $currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-                            $totalItems = count($recentActivity ?? []);
-                            $totalPages = ceil($totalItems / $itemsPerPage);
-                            $startIndex = ($currentPage - 1) * $itemsPerPage;
-                            $currentPageItems = array_slice($recentActivity ?? [], $startIndex, $itemsPerPage);
-                            ?>
-
-                            <?php if (empty($recentActivity)): ?>
-                                <div class="text-center py-12">
-                                    <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <i class="fas fa-inbox text-3xl text-slate-400"></i>
-                                    </div>
-                                    <h3 class="text-lg font-semibold text-slate-600 mb-2">No Recent Activity</h3>
-                                    <p class="text-slate-500">Start adding floors, categories, or products to see activity here.</p>
-                                </div>
-                            <?php else: ?>
-                                <?php foreach ($currentPageItems as $index => $activity): ?>
-                                    <?php $style = getActivityStyle($activity['type']); ?>
-                                    <div class="group flex items-start p-4 rounded-2xl bg-gradient-to-r <?= $style['bg'] ?> border <?= $style['border'] ?> hover:shadow-lg transition-all duration-300 animate-fade-in" style="animation-delay: <?= $index * 0.1 ?>s;">
-                                        <div class="flex-shrink-0 p-4 rounded-2xl bg-gradient-to-br from-<?= $style['color'] ?>-500 to-<?= $style['color'] ?>-600 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
-                                            <i class="fas fa-<?= $style['icon'] ?> text-lg"></i>
-                                        </div>
-                                        <div class="ml-6 flex-1">
-                                            <div class="flex items-center justify-between mb-2">
-                                                <p class="font-bold text-slate-800 text-lg">
-                                                    New <?= ucfirst($activity['type']) ?> <?= $activity['action'] ?>
-                                                </p>
-                                                <span class="px-3 py-1 rounded-full text-xs font-bold <?= $style['badge'] ?> uppercase tracking-wide">
-                                                    <?= ucfirst($activity['action']) ?>
-                                                </span>
-                                            </div>
-                                            <p class="text-slate-700 font-medium mb-3">
-                                                "<?= htmlspecialchars($activity['name']) ?>" has been successfully <?= $activity['action'] ?>
-                                            </p>
-                                            <div class="flex items-center justify-between">
-                                                <p class="text-sm text-slate-500 flex items-center">
-                                                    <i class="fas fa-clock mr-2"></i>
-                                                    <?= timeAgo($activity['created_at']) ?>
-                                                </p>
-                                                <p class="text-xs text-slate-400">
-                                                    <?= date('M d, Y \a\t g:i A', strtotime($activity['created_at'])) ?>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </div>
-
-                        <!-- Pagination Component -->
-                        <?php if (!empty($recentActivity) && $totalPages > 1): ?>
-                            <div class="mt-8">
-                                <div class="pagination-container"
-                                    data-current-page="<?= $currentPage ?>"
-                                    data-total-pages="<?= $totalPages ?>"
-                                    data-total-items="<?= $totalItems ?>">
-                                    <!-- Pagination will be rendered by JavaScript -->
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- Enhanced View All Activity Button -->
-                    <div class="mt-8 text-center">
-                        <button class="group inline-flex items-center px-8 py-4 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold hover:from-slate-800 hover:to-slate-900 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
-                            <i class="fas fa-history mr-3 group-hover:animate-spin"></i>
-                            View Complete Activity Log
-                            <i class="fas fa-arrow-right ml-3 group-hover:translate-x-1 transition-transform"></i>
-                        </button>
-                    </div>
-                </div>
             </main>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Prepare data for charts
-            const categoryLabels = <?= json_encode(array_column($categoriesData, 'name')) ?>;
-            const categoryData = <?= json_encode(array_column($categoriesData, 'product_count')) ?>;
 
-            const floorLabels = <?= json_encode(array_column($floorsData, 'name')) ?>;
-            const floorData = <?= json_encode(array_column($floorsData, 'category_count')) ?>;
-
-            // Enhanced modern color palette
-            const modernColors = [
-                '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-                '#EC4899', '#14B8A6', '#F97316', '#6366F1', '#84CC16',
-                '#06B6D4', '#F43F5E', '#8B5A2B', '#059669', '#7C3AED'
-            ];
-
-            // Enhanced Category Chart (Doughnut)
-            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-            new Chart(categoryCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: categoryLabels,
-                    datasets: [{
-                        data: categoryData,
-                        backgroundColor: modernColors,
-                        borderWidth: 0,
-                        hoverBorderWidth: 4,
-                        hoverBorderColor: '#ffffff',
-                        hoverOffset: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '65%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 25,
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                font: {
-                                    size: 14,
-                                    weight: '600'
-                                },
-                                color: '#374151'
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#ffffff',
-                            borderColor: 'rgba(255, 255, 255, 0.2)',
-                            borderWidth: 1,
-                            cornerRadius: 12,
-                            displayColors: true,
-                            titleFont: {
-                                size: 16,
-                                weight: 'bold'
-                            },
-                            bodyFont: {
-                                size: 14
-                            },
-                            padding: 12,
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.raw} categories`;
-                                }
-                            }
-                        }
-                    },
-                    animation: {
-                        duration: 2500,
-                        easing: 'easeOutCubic'
-                    }
-                }
-            });
-
-            const floorCtx = document.getElementById('floorChart').getContext('2d');
-            new Chart(floorCtx, {
-                type: 'bar',
-                data: {
-                    labels: floorLabels,
-                    datasets: [{
-                        label: 'Categories per Floor',
-                        data: floorData,
-                        backgroundColor: modernColors.slice(2, floorData.length),
-                        borderRadius: 8,
-                        borderSkipped: false,
-                        hoverBackgroundColor: modernColors.slice(0, floorData.length).map(color => color + 'CC'),
-                        hoverBorderWidth: 2,
-                        hoverBorderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false // Hide legend for bar chart
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#ffffff',
-                            borderColor: 'rgba(255, 255, 255, 0.2)',
-                            borderWidth: 1,
-                            cornerRadius: 12,
-                            displayColors: true,
-                            titleFont: {
-                                size: 16,
-                                weight: 'bold'
-                            },
-                            bodyFont: {
-                                size: 14
-                            },
-                            padding: 12,
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.parsed.y} categories`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.1)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                color: '#6B7280',
-                                font: {
-                                    size: 12,
-                                    weight: '500'
-                                },
-                                stepSize: 1
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                color: '#374151',
-                                font: {
-                                    size: 12,
-                                    weight: '600'
-                                },
-                                maxRotation: 45,
-                                minRotation: 0
-                            }
-                        }
-                    },
-                    animation: {
-                        duration: 2000,
-                        easing: 'easeOutBounce'
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    }
-                }
-            });
-            // Number counter animation
-            function animateCounters() {
-                const counters = document.querySelectorAll('.number-counter');
-                counters.forEach(counter => {
-                    const target = parseInt(counter.textContent);
-                    const increment = target / 50;
-                    let current = 0;
-
-                    const timer = setInterval(() => {
-                        current += increment;
-                        counter.textContent = Math.floor(current);
-
-                        if (current >= target) {
-                            counter.textContent = target;
-                            clearInterval(timer);
-                        }
-                    }, 30);
-                });
-            }
-
-            // Intersection Observer for animations
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-
-            // Observe all animated elements
-            document.querySelectorAll('.animate-fade-in, .animate-slide-up').forEach(el => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(20px)';
-                el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                observer.observe(el);
-            });
-
-            // Start counter animation after a delay
-            setTimeout(animateCounters, 1000);
-
-            // Enhanced hover effects for cards
-            const cards = document.querySelectorAll('.card-hover-effect');
-            cards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-8px) scale(1.02)';
-                    this.style.boxShadow = '0 25px 60px -12px rgba(0, 0, 0, 0.25)';
-                });
-
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
-                    this.style.boxShadow = '';
-                });
-            });
-
-            // Refresh button functionality
-            const refreshBtn = document.querySelector('button[class*="refresh"]');
-            if (refreshBtn) {
-                refreshBtn.addEventListener('click', function() {
-                    const icon = this.querySelector('i');
-                    icon.classList.add('fa-spin');
-
-                    // Simulate refresh
-                    setTimeout(() => {
-                        icon.classList.remove('fa-spin');
-                        location.reload();
-                    }, 1000);
-                });
-            }
-
-            // Add parallax effect to hero section
-            window.addEventListener('scroll', () => {
-                const scrolled = window.pageYOffset;
-                const heroSection = document.querySelector('.animated-gradient');
-                if (heroSection) {
-                    heroSection.style.transform = `translateY(${scrolled * 0.3}px)`;
-                }
-            });
-
-            // Add smooth scrolling for internal links
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                });
-            });
-
-            // Add loading states for chart containers
-            const chartContainers = document.querySelectorAll('canvas');
-            chartContainers.forEach(canvas => {
-                const container = canvas.parentElement;
-                container.style.position = 'relative';
-
-                // Add loading spinner
-                const spinner = document.createElement('div');
-                spinner.className = 'absolute inset-0 flex items-center justify-center';
-                spinner.innerHTML = `
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                `;
-                container.appendChild(spinner);
-
-                // Remove spinner after chart loads
-                setTimeout(() => {
-                    spinner.remove();
-                }, 1000);
-            });
-
-            // Add real-time clock update
-            function updateClock() {
-                const clockElements = document.querySelectorAll('[data-clock]');
-                const now = new Date();
-                const timeString = now.toLocaleString('en-US', {
-                    month: 'short',
-                    day: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-
-                clockElements.forEach(el => {
-                    el.textContent = timeString;
-                });
-            }
-
-            // Update every minute
-            setInterval(updateClock, 60000);
-
-            // Add subtle animations to activity items
-            const activityItems = document.querySelectorAll('.group[class*="activity"]');
-            activityItems.forEach((item, index) => {
-                item.style.animationDelay = `${index * 0.1}s`;
-
-                item.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateX(8px)';
-                });
-
-                item.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateX(0)';
-                });
-            });
-
-            // Add keyboard navigation support
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Tab') {
-                    document.body.classList.add('keyboard-nav');
-                }
-            });
-
-            document.addEventListener('mousedown', function() {
-                document.body.classList.remove('keyboard-nav');
-            });
-
-            // Performance optimization: Reduce animations on low-end devices
-            const isLowEndDevice = navigator.hardwareConcurrency <= 2;
-            if (isLowEndDevice) {
-                document.documentElement.style.setProperty('--animation-duration', '0.3s');
-            }
-
-            console.log('🚀 Dashboard loaded successfully!');
-        });
-    </script>
     <script src="./js/index.js"></script>
-    <script src="./js/pagination.js"></script>
 </body>
 
 </html>

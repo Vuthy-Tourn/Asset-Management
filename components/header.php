@@ -10,6 +10,7 @@ if (strpos($_SERVER['PHP_SELF'], 'category/') !== false) $page_title = 'Categori
 if (strpos($_SERVER['PHP_SELF'], 'products/') !== false) $page_title = 'Products';
 if (strpos($_SERVER['PHP_SELF'], 'analytics/') !== false) $page_title = 'Analytics';
 if (strpos($_SERVER['PHP_SELF'], 'settings/') !== false) $page_title = 'Settings';
+if (strpos($_SERVER['PHP_SELF'], 'recently-activites/') !== false) $page_title = 'Recently Activities';
 
 // Database connection (replace with your actual connection)
 
@@ -266,7 +267,7 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
 
                         <!-- Footer -->
                         <div class="px-4 py-3 border-t border-gray-200/50 bg-gray-50/50">
-                            <a href="#" class="block text-center text-sm text-indigo-600 hover:text-indigo-800 font-medium">
+                            <a href="/Uni-PHP/Assignment/pages/recent_data.php" class="block text-center text-sm text-indigo-600 hover:text-indigo-800 font-medium">
                                 View all notifications
                             </a>
                         </div>
@@ -346,18 +347,6 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Mobile Search Bar (Hidden by default) -->
-    <div id="mobile-search-bar" class="hidden md:hidden px-4 pb-4">
-        <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <i class="fas fa-search text-gray-400"></i>
-            </div>
-            <input type="text"
-                class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                placeholder="Search anything...">
         </div>
     </div>
 </header>

@@ -133,7 +133,7 @@ $table = new DataTable($conn, [
             </main>
         </div>
     </div>
-  
+
     <!-- Modals -->
     <?php
     renderModal(
@@ -142,8 +142,8 @@ $table = new DataTable($conn, [
         'createProductContent', // Must match data-modal-target
         'medium',
         true, // Include default content div
-        '', // Additional classes
-        true // Include footer with default buttons
+        true, // Include footer with default buttons
+        "fa-solid fa-plus"
     );
 
     // Edit Product Modal
@@ -153,7 +153,8 @@ $table = new DataTable($conn, [
         'editProductsContent',
         'medium',
         true,
-        'edit-product-modal' // additional classes
+        'edit-product-modal', // additional classes
+        "fas fa-edit"
     );
 
     renderDeleteModal(

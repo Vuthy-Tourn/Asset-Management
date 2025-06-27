@@ -41,6 +41,14 @@ $nav_items = [
 
 $additional_nav_items = [
     [
+        'title' => 'Activities',
+        'subtitle' => 'Recently Activity',
+        'icon' => 'fa-solid fa-chart-line',
+        'url' => '/Uni-PHP/Assignment/pages/recent_data.php',
+        'active' => strpos($_SERVER['PHP_SELF'], 'recent-data/') !== false,
+        'color' => 'yellow'
+    ],
+    [
         'title' => 'Analytics',
         'subtitle' => 'Data Insights',
         'icon' => 'fas fa-chart-bar',
@@ -56,14 +64,14 @@ $additional_nav_items = [
         'active' => strpos($_SERVER['PHP_SELF'], 'reports/') !== false,
         'color' => 'indigo'
     ],
-    [
-        'title' => 'Settings',
-        'subtitle' => 'System Config',
-        'icon' => 'fas fa-cog',
-        'url' => '/Uni-PHP/Assignment/settings/index.php',
-        'active' => strpos($_SERVER['PHP_SELF'], 'settings/') !== false,
-        'color' => 'gray'
-    ]
+    // [
+    //     'title' => 'Settings',
+    //     'subtitle' => 'System Config',
+    //     'icon' => 'fas fa-cog',
+    //     'url' => '/Uni-PHP/Assignment/settings/index.php',
+    //     'active' => strpos($_SERVER['PHP_SELF'], 'settings/') !== false,
+    //     'color' => 'gray'
+    // ]
 ];
 ?>
 

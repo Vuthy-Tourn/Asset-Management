@@ -2,15 +2,17 @@
 require_once '../components/config/db.php';
 require_once '../components/flash.php';
 require_once '../components/datatable.php';
+require_once '../components/page_header.php';
+require_once '../components/modal.php';
 
 $flash = flash();
 if ($flash) {
     require_once '../components/toast.php';
     showToast($flash['message'], $flash['type']);
 }
-    $floors = $conn->query("SELECT id, name FROM floor")->fetch_all(MYSQLI_ASSOC);
+$floors = $conn->query("SELECT id, name FROM floor")->fetch_all(MYSQLI_ASSOC);
 
-    $floorOptions = ['' => 'All Floors'] + array_column($floors, 'name', 'id');
+$floorOptions = ['' => 'All Floors'] + array_column($floors, 'name', 'id');
 $table = new DataTable($conn, [
     'table' => 'category',
     'primaryKey' => 'id',
@@ -36,7 +38,7 @@ $table = new DataTable($conn, [
     'joins' => ['LEFT JOIN floor ON category.floor_id = floor.id'],
     'filterOptions' => [
         'floor_id' => $floorOptions
-        ],
+    ],
     'dateField' => 'category.created_at',
     'searchable' => ['category.name', 'category.code', 'floor.name'],
     'addButton' => true,
@@ -70,17 +72,20 @@ $table = new DataTable($conn, [
 
             <!-- Main Content -->
             <main class="p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h1 class="text-2xl font-semibold">Manage Categories</h1>
-                    <button
-                        id="addCategoryBtn"
-                        data-modal-fetch="createCategoryModal"
-                        data-modal-url="create.php"
-                        data-modal-target="createCategoryContent"
-                        class="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-6 py-3 rounded-lg flex items-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                        <i class="fas fa-plus mr-2"></i> Add New Category
-                    </button>
-                </div>
+                <!-- Page Header -->
+                <?php
+                renderPageHeader(
+                    "Category Management",
+                    "Manage your Category information",
+                    [
+                        'text' => 'Add New Category',
+                        'icon' => 'fa-plus',
+                        'modalId' => 'createCategory',
+                        'modalUrl' => 'create.php',
+                        'modalTarget' => 'createCategoryContent'
+                    ]
+                );
+                ?>
 
                 <?php
                 $table->render();
@@ -88,61 +93,41 @@ $table = new DataTable($conn, [
             </main>
         </div>
     </div>
-    <!-- Create Category Modal -->
-    <div id="createCategoryModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center">
-        <div class="modal-content bg-white p-6 rounded-lg max-w-2xl w-full">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-gray-900">Add New Category</h3>
-                <button data-modal-close="createCategoryModal" class="text-gray-500 hover:text-gray-700 text-2xl">
-                    &times;
-                </button>
-            </div>
-            <div id="createCategoryContent">
-                <!-- Content will be loaded here from create.php -->
-            </div>
-        </div>
-    </div>
 
-    <!-- Edit Category Modal -->
-    <div id="editCategoryModal" class="modal hidden fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center">
-        <div class="modal-content bg-white p-6 rounded-lg max-w-2xl w-full">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-gray-900">Edit Category</h3>
-                <button data-modal-close="editCategoryModal" class="text-gray-500 hover:text-gray-700 text-2xl">
-                    &times;
-                </button>
-            </div>
-            <div id="editCategoryContent">
-                <!-- Content will be loaded here from update.php -->
-            </div>
-        </div>
-    </div>
+    <!-- Modals -->
+    <?php
+    renderModal(
+        'createCategory',
+        'Add New Category',
+        'createCategoryContent', // Must match data-modal-target
+        'medium',
+        true, // Include default content div
+        true, // Include footer with default buttons
+        "fa-solid fa-plus"
+    );
 
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteConfirmModal" class="modal hidden fixed inset-0 items-center justify-center z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-            <div class="flex justify-between items-center p-6 border-b">
-                <h3 class="text-xl font-semibold text-red-600">Confirm Deletion</h3>
-                <button data-modal-close="deleteConfirmModal" class="text-gray-500 hover:text-gray-700 text-2xl">
-                    &times;
-                </button>
-            </div>
-            <div class="p-6">
-                <div class="flex items-center mb-4">
-                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl mr-3"></i>
-                    <p class="text-gray-700">Are you sure you want to delete this category? This action cannot be undone.</p>
-                </div>
-                <div class="flex justify-end space-x-3 mt-6">
-                    <button data-modal-close="deleteConfirmModal" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                        Cancel
-                    </button>
-                    <button id="confirmDeleteButton" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                        <i class="fas fa-trash mr-2"></i>Delete
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    // Edit Category Modal
+    renderModal(
+        'editCategoryModal',
+        'Edit Category',
+        'editCategoryContent',
+        'medium',
+        true,
+        'edit-Category-modal', // additional classes
+        "fas fa-edit"
+    );
+
+    renderDeleteModal(
+        'deleteConfirmModal',
+        'Delete Category',
+        'This will permanently delete the Category. Are you sure?',
+        'Confirm Delete',
+        'Cancel'
+    );
+
+    // For AJAX operations
+    renderLoadingModal('ajaxLoadingModal');
+    ?>
 
     <!-- Toast Notification -->
     <?php if ($flash): ?>

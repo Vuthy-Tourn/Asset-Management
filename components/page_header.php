@@ -31,7 +31,7 @@ function renderPageHeader(
         'danger' => 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800'
     ];
 ?>
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 <?= htmlspecialchars($additionalClasses) ?>">
+    <div class="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4 <?= htmlspecialchars($additionalClasses) ?>">
         <div>
             <h1 class="text-3xl font-bold text-gray-900"><?= htmlspecialchars($title) ?></h1>
             <?php if ($subtitle): ?>

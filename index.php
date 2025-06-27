@@ -155,8 +155,8 @@ $floorsData = $conn->query("
                                     </div>
 
                                     <div class="pt-4 border-t border-white/10">
-                                        <button class="w-full flex items-center justify-center gap-2 bg-white text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                                            <i class="fas fa-sync-alt"></i>
+                                        <button class="w-full flex items-center justify-center gap-2 bg-white text-indigo-600 hover:bg-indigo-50 px-4 py-2 rounded-lg text-sm font-medium transition-colors" onclick="refreshActivity()">
+                                            <i class=" fas fa-sync-alt"></i>
                                             Refresh Data
                                         </button>
                                     </div>
@@ -167,7 +167,7 @@ $floorsData = $conn->query("
                 </div>
 
                 <!-- Enhanced Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 animate-slide-up">
+                <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up">
                     <!-- Floors Card -->
                     <div class="group card-hover-effect bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-8 border border-white/30 relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>

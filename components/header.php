@@ -10,7 +10,7 @@ if (strpos($_SERVER['PHP_SELF'], 'category/') !== false) $page_title = 'Categori
 if (strpos($_SERVER['PHP_SELF'], 'products/') !== false) $page_title = 'Products';
 if (strpos($_SERVER['PHP_SELF'], 'analytics/') !== false) $page_title = 'Analytics';
 if (strpos($_SERVER['PHP_SELF'], 'settings/') !== false) $page_title = 'Settings';
-if (strpos($_SERVER['PHP_SELF'], 'recently-activites/') !== false) $page_title = 'Recently Activities';
+if (strpos($_SERVER['PHP_SELF'], 'recent-activites/') !== false) $page_title = 'Recent Activities';
 
 // Database connection (replace with your actual connection)
 
@@ -181,7 +181,7 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
             <!-- Mobile menu button -->
-            <div class="flex items-center lg:hidden">
+            <div class="flex items-center md:hidden">
                 <button type="button" id="mobile-menu-button"
                     class="mobile-menu-btn inline-flex items-center justify-center p-2 rounded-xl text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500 smooth-transition">
                     <span class="sr-only">Open main menu</span>

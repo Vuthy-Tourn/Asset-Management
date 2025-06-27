@@ -285,3 +285,8 @@ function initDashboard() {
 
 // Wait for DOM to be fully loaded
 document.addEventListener("DOMContentLoaded", initDashboard);
+
+// Function for refresh button
+function refreshActivity() {
+  window.location.reload();
+}

@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- category Select -->
         <div>
             <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">
-                category
+                Category
             </label>
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

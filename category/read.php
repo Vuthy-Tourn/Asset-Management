@@ -28,7 +28,9 @@ $table = new DataTable($conn, [
                 'Ground' => 'purple',  // Must match exactly or implement case-insensitive matching
                 'First' => 'cyan',
                 'Second' => 'yellow',
-                'Third' => 'green'
+                'Third' => 'green',
+                'Fourth' => 'sky',
+                'Fifth' => 'fuchsia'
             ],
             'default_color' => 'gray',
             'nowrap' => true
@@ -75,7 +77,7 @@ $table = new DataTable($conn, [
                 <!-- Page Header -->
                 <?php
                 renderPageHeader(
-                    "Category Management",
+                    'Category Management',
                     "Manage your Category information",
                     [
                         'text' => 'Add New Category',
@@ -83,7 +85,11 @@ $table = new DataTable($conn, [
                         'modalId' => 'createCategory',
                         'modalUrl' => 'create.php',
                         'modalTarget' => 'createCategoryContent'
-                    ]
+                    ],
+                    [
+                        ['title' => 'Dashboard', 'url' => '/Uni-PHP/Assignment/index.php'],
+                        ['title' => 'Categories'] // Current page (no link)
+                    ],
                 );
                 ?>
 
@@ -98,23 +104,23 @@ $table = new DataTable($conn, [
     <?php
     renderModal(
         'createCategory',
+        "fa-solid fa-plus",
         'Add New Category',
         'createCategoryContent', // Must match data-modal-target
         'medium',
-        true, // Include default content div
-        true, // Include footer with default buttons
-        "fa-solid fa-plus"
+        true,
+        true,
     );
 
     // Edit Category Modal
     renderModal(
         'editCategoryModal',
+        "fas fa-edit",
         'Edit Category',
         'editCategoryContent',
         'medium',
         true,
         'edit-Category-modal', // additional classes
-        "fas fa-edit"
     );
 
     renderDeleteModal(
@@ -147,6 +153,7 @@ $table = new DataTable($conn, [
     <?php endif; ?>
     <script src="../js/modal.js"></script>
     <script src="../js/search.js"></script>
+    <script src="../js/pagination.js"></script>
 </body>
 
 </html>

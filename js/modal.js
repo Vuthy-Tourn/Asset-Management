@@ -167,7 +167,7 @@ class ModalManager {
       if (this.currentOpenModal === modalId) {
         this.currentOpenModal = null;
       }
-    }z
+    }
   }
 
   showLoader(element) {

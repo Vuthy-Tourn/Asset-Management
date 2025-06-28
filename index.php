@@ -82,7 +82,7 @@ $floorsData = $conn->query("
             <main class="p-4 sm:p-6 lg:p-8 space-y-8">
                 <!-- Hero Welcome Section -->
                 <div class="animate-fade-in">
-                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 lg:p-10 text-white shadow-lg relative overflow-hidden">
+                    <div class="bg-gradient-to-br from-[#0345e4] via-[#026af2] to-[#00279c] rounded-2xl p-6 lg:p-10 text-white shadow-lg relative overflow-hidden">
                         <!-- Subtle grid pattern background -->
                         <div class="absolute inset-0 opacity-10" style="
             background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
@@ -167,7 +167,7 @@ $floorsData = $conn->query("
                 </div>
 
                 <!-- Enhanced Stats Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-8 animate-slide-up">
+                <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 animate-slide-up">
                     <!-- Floors Card -->
                     <div class="group card-hover-effect bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-8 border border-white/30 relative overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>

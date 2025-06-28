@@ -58,12 +58,14 @@ class DataTable
             $this->searchTerm = trim($_GET['search']);
         }
 
-       // Time filter processing - ensure it's always set if in GET params
-    $this->timeFilter = $_GET['time_filter'] ?? '';
+        // Time filter processing - ensure it's always set if in GET params
+        $this->timeFilter = $_GET['time_filter'] ?? '';
     }
 
     private function fetchData()
     {
+        // Get current page from URL first
+        $this->currentPage = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
         $offset = ($this->currentPage - 1) * $this->config['perPage'];
         $whereClauses = [];
         $params = [];
@@ -89,7 +91,7 @@ class DataTable
             $whereClauses[] = '(' . implode(' OR ', $searchParts) . ')';
         }
 
-        // Add time filter conditions - MODIFIED SECTION
+        // Add time filter conditions
         if (!empty($this->timeFilter)) {
             $dateField = $this->config['dateField'] ?? 'created_at';
 
@@ -107,7 +109,6 @@ class DataTable
                     $whereClauses[] = "YEAR($dateField) = YEAR(CURDATE())";
                     break;
                 case 'latest':
-                    // No WHERE condition, just change the order
                     $this->config['defaultOrder'] = "$dateField DESC";
                     break;
             }
@@ -178,92 +179,118 @@ class DataTable
         }
     }
 
-    private function renderFilters()
-    {
-?>
-        <div class="rounded-lg shadow-sm p-4 mb-6 bg-gray-50">
-            <form id="filterForm" method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <?php if (!empty($this->config['filterOptions'])): ?>
-                    <?php foreach ($this->config['filterOptions'] as $filterName => $options): ?>
-                        <div>
-                            <label for="<?= $filterName ?>" class="block text-sm font-medium text-gray-700 mb-1">
-                                Filter by <?= ucfirst(str_replace('_', ' ', $filterName)) ?>
-                            </label>
-                            <select
-                                id="<?= $filterName ?>"
-                                name="<?= $filterName ?>"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500">
-                                <?php foreach ($this->getFilterOptions($filterName) as $value => $label): ?>
-                                    <option value="<?= htmlspecialchars($value) ?>"
-                                        <?= isset($this->filters[$filterName]) && $this->filters[$filterName] == $value ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($label) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-
-                <!-- Time Filter Dropdown -->
-                <div>
-                    <label for="time_filter" class="block text-sm font-medium text-gray-700 mb-1">
-                        Time Period
-                    </label>
-                    <select
-                        id="time_filter"
-                        name="time_filter"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500">
-                        <?php foreach ($this->config['timeFilterOptions'] as $value => $label): ?>
-                            <option value="<?= htmlspecialchars($value) ?>"
-                                <?= $this->timeFilter === $value ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($label) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-
-                <!-- Hidden fields to maintain state -->
-                <?php if (!empty($this->searchTerm)): ?>
-                    <input type="hidden" name="search" value="<?= htmlspecialchars($this->searchTerm) ?>">
-                <?php endif; ?>
-                <input type="hidden" name="page" value="1">
-                <button type="submit" class="hidden">Apply Filters</button>
-            </form>
-        </div>
-    <?php
-    }
-
     private function getFilterOptions($filterName)
     {
         // You can customize this method to fetch options from database if needed
         return $this->config['filterOptions'][$filterName];
     }
 
-    private function renderSearch()
+    private function renderSearchAndFilters()
     {
-    ?>
-        <div class="rounded-lg shadow-sm p-4 mb-6">
-            <form id="searchForm" method="GET" action="" class="flex flex-col sm:flex-row gap-4 items-center"
-                data-live-search="true">
-                <div class="relative flex-1 max-w-md">
-                    <input
-                        type="text"
-                        id="searchInput"
-                        name="search"
-                        value="<?= htmlspecialchars($this->searchTerm) ?>"
-                        placeholder="Search <?= $this->config['table'] ?>..."
-                        class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                        autocomplete="off">
-                    <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
-                    <!-- Add loading spinner if needed -->
-                    <!-- <div id="searchLoading" class="hidden absolute right-3 top-4">
+        $hasFilters = !empty($this->config['filterOptions']) || !empty($this->config['timeFilterOptions']);
+?>
+        <div class="rounded-xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
+            <div class="p-5">
+                <!-- Search and Filters Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                    <!-- Search Bar -->
+                    <div class="flex-1 max-w-2xl">
+                        <form id="searchForm" method="GET" action="" class="flex flex-col sm:flex-row gap-4 items-center"
+                            data-live-search="true">
+                            <div class="relative flex-1 max-w-md">
+                                <input
+                                    type="text"
+                                    id="searchInput"
+                                    name="search"
+                                    value="<?= htmlspecialchars($this->searchTerm) ?>"
+                                    placeholder="Search <?= $this->config['table'] ?>..."
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                                    autocomplete="off">
+                                <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+                                <!-- Add loading spinner if needed -->
+                                <!-- <div id="searchLoading" class="hidden absolute right-3 top-4">
                     <i class="fas fa-spinner fa-spin text-gray-400"></i>
                 </div> -->
+                            </div>
+                            <?php foreach ($this->filters as $name => $value): ?>
+                                <input type="hidden" name="<?= htmlspecialchars($name) ?>" value="<?= htmlspecialchars($value) ?>">
+                            <?php endforeach; ?>
+                        </form>
+                    </div>
+
+                    <!-- Filters Toggle -->
+                    <?php if ($hasFilters): ?>
+                        <div class="flex items-center space-x-3 hidden md:flex">
+                            <?php if (!empty($this->filters) || !empty($this->searchTerm)): ?>
+                                <a href="<?= strtok($_SERVER['REQUEST_URI'], '?') ?>" class="inline-flex items-center px-3.5 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                    Reset All
+                                </a>
+                            <?php endif; ?>
+                            <button @click="filtersOpen = !filtersOpen" type="button" class="inline-flex items-center px-3.5 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                <svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                                </svg>
+                                Filters
+                            </button>
+                        </div>
+                    <?php endif; ?>
                 </div>
-                <?php foreach ($this->filters as $name => $value): ?>
-                    <input type="hidden" name="<?= htmlspecialchars($name) ?>" value="<?= htmlspecialchars($value) ?>">
-                <?php endforeach; ?>
-            </form>
+
+                <!-- Filters Panel -->
+                <?php if ($hasFilters): ?>
+                    <div x-data="{ filtersOpen: false }" x-cloak>
+                        <div x-show="filtersOpen" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="pt-4 border-t border-gray-200">
+                            <form id="filterForm" method="get" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    <?php if (!empty($this->config['filterOptions'])): ?>
+                                        <?php foreach ($this->config['filterOptions'] as $filterName => $options): ?>
+                                            <div>
+                                                <label for="<?= $filterName ?>" class="block text-sm font-medium text-gray-700 mb-1">
+                                                    Filter by <?= ucfirst(str_replace('_id', ' ', $filterName)) ?>
+                                                </label>
+                                                <select
+                                                    id="<?= $filterName ?>"
+                                                    name="<?= $filterName ?>"
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                                                    <?php foreach ($this->getFilterOptions($filterName) as $value => $label): ?>
+                                                        <option value="<?= htmlspecialchars($value) ?>"
+                                                            <?= isset($this->filters[$filterName]) && $this->filters[$filterName] == $value ? 'selected' : '' ?>>
+                                                            <?= htmlspecialchars($label) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($this->config['timeFilterOptions'])): ?>
+                                        <div>
+                                            <label for="time_filter" class="block text-sm font-medium text-gray-700 mb-1">
+                                                Time Period
+                                            </label>
+                                            <div class="mt-1 relative">
+                                                <select id="time_filter" name="time_filter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 rounded-md shadow-sm">
+                                                    <?php foreach ($this->config['timeFilterOptions'] as $value => $label): ?>
+                                                        <option value="<?= htmlspecialchars($value) ?>" <?= $this->timeFilter === $value ? 'selected' : '' ?>>
+                                                            <?= htmlspecialchars($label) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+                                <!-- Hidden fields -->
+                                <?php if (!empty($this->searchTerm)): ?>
+                                    <input type="hidden" name="search" value="<?= htmlspecialchars($this->searchTerm) ?>">
+                                <?php endif; ?>
+                                <input type="hidden" name="page" value="1">
+                            </form>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     <?php
     }
@@ -284,10 +311,10 @@ class DataTable
             return $output;
         }
 
-        $this->renderSearch();
-        $this->renderFilters();
+        $this->renderSearchAndFilters();
         $this->renderTable();
     }
+
 
     private function renderTable()
     {
@@ -354,54 +381,12 @@ class DataTable
                 </div>
 
                 <?php if ($this->totalPages > 1): ?>
-                    <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                        <div class="flex-1 flex justify-between sm:hidden">
-                            <?php if ($this->currentPage > 1): ?>
-                                <a href="?<?= http_build_query(array_merge($_GET, ['page' => $this->currentPage - 1])) ?>" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                    Previous
-                                </a>
-                            <?php endif; ?>
-                            <?php if ($this->currentPage < $this->totalPages): ?>
-                                <a href="?<?= http_build_query(array_merge($_GET, ['page' => $this->currentPage + 1])) ?>" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                                    Next
-                                </a>
-                            <?php endif; ?>
-                        </div>
-                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p class="text-sm text-gray-700">
-                                    Showing <span class="font-medium"><?= (($this->currentPage - 1) * $this->config['perPage']) + 1 ?></span> to
-                                    <span class="font-medium"><?= min($this->currentPage * $this->config['perPage'], $this->total) ?></span> of
-                                    <span class="font-medium"><?= $this->total ?></span> results
-                                </p>
-                            </div>
-                            <div>
-                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                                    <?php if ($this->currentPage > 1): ?>
-                                        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $this->currentPage - 1])) ?>" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                            <i class="fas fa-chevron-left"></i>
-                                        </a>
-                                    <?php endif; ?>
-
-                                    <?php
-                                    $start = max(1, $this->currentPage - 2);
-                                    $end = min($this->totalPages, $this->currentPage + 2);
-
-                                    for ($i = $start; $i <= $end; $i++): ?>
-                                        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>"
-                                            class="relative inline-flex items-center px-4 py-2 border text-sm font-medium <?= $i == $this->currentPage ? 'z-10 bg-purple-50 border-purple-500 text-purple-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50' ?>">
-                                            <?= $i ?>
-                                        </a>
-                                    <?php endfor; ?>
-
-                                    <?php if ($this->currentPage < $this->totalPages): ?>
-                                        <a href="?<?= http_build_query(array_merge($_GET, ['page' => $this->currentPage + 1])) ?>" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                            <i class="fas fa-chevron-right"></i>
-                                        </a>
-                                    <?php endif; ?>
-                                </nav>
-                            </div>
-                        </div>
+                    <div class="pagination-container mt-6"
+                        data-current-page="<?= $this->currentPage ?>"
+                        data-total-pages="<?= $this->totalPages ?>"
+                        data-total-items="<?= $this->total ?>"
+                        data-per-page="<?= $this->config['perPage'] ?>">
+                        <!-- Pagination will be rendered here by JavaScript -->
                     </div>
                 <?php endif; ?>
             <?php endif; ?>

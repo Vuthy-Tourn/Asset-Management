@@ -7,7 +7,7 @@ class PaginationComponent {
     this.baseUrl = options.baseUrl || window.location.pathname;
     this.onPageChange = options.onPageChange || this.defaultPageChange;
     this.maxVisiblePages = options.maxVisiblePages || 5;
-
+    this.perPage = parseInt(container.dataset.perPage) || 6;
     this.render();
   }
 
@@ -21,7 +21,7 @@ class PaginationComponent {
     if (this.totalPages <= 1) return "";
 
     let html = `
-                    <div class="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+                    <div class="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 p-4">
                         <!-- Results Info -->
                         <div class="text-sm text-slate-600">
                             Showing <span class="font-semibold text-slate-800">${this.getStartItem()}</span> 
@@ -59,7 +59,7 @@ class PaginationComponent {
           false,
           `px-3 py-2 text-sm ${
             isActive
-              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
+              ? "bg-gradient-to-br from-[#0345e4] via-[#026af2] to-[#00279c] text-white shadow-lg"
               : "text-slate-600 hover:text-slate-800"
           }`
         );
@@ -134,11 +134,12 @@ class PaginationComponent {
   }
 
   getStartItem() {
-    return Math.min((this.currentPage - 1) * 5 + 1, this.totalItems);
+    if (this.totalItems === 0) return 0;
+    return (this.currentPage - 1) * this.perPage + 1;
   }
 
   getEndItem() {
-    return Math.min(this.currentPage * 5, this.totalItems);
+    return Math.min(this.currentPage * this.perPage, this.totalItems);
   }
 
   attachEventListeners() {

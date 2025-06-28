@@ -284,15 +284,15 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
                     <div id="quick-actions-dropdown"
                         class="hidden absolute right-0 mt-2 w-56 rounded-2xl shadow-2xl glass-effect ring-1 ring-black ring-opacity-5 focus:outline-none smooth-transition transform opacity-0 scale-95 origin-top-right">
                         <div class="py-2">
-                            <a href="/Uni-PHP/Assignment/products/create.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
+                            <a href="/Uni-PHP/Assignment/products/read.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
                                 <i class="fas fa-plus-circle w-4 mr-3 text-green-500"></i>
                                 Add New Product
                             </a>
-                            <a href="/Uni-PHP/Assignment/category/create.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
+                            <a href="/Uni-PHP/Assignment/category/read.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
                                 <i class="fas fa-tag w-4 mr-3 text-blue-500"></i>
                                 Add Category
                             </a>
-                            <a href="/Uni-PHP/Assignment/floor/create.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
+                            <a href="/Uni-PHP/Assignment/floor/read.php" class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50/80 smooth-transition">
                                 <i class="fas fa-building w-4 mr-3 text-purple-500"></i>
                                 Add Floor
                             </a>
@@ -304,8 +304,8 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
                 <div class="relative">
                     <button type="button" id="user-menu-button"
                         class="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 smooth-transition group">
-                        <span class="text-gray-700 hidden sm:inline text-sm font-medium">Admin User</span>
-                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg hover-lift smooth-transition">
+                        <span class="text-gray-700 hidden sm:inline text-sm font-medium">Admin</span>
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0345e4] via-[#026af2] to-[#00279c] flex items-center justify-center text-white shadow-lg hover-lift smooth-transition">
                             <i class="fas fa-user text-sm"></i>
                         </div>
                     </button>
@@ -315,11 +315,11 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
                         class="hidden absolute right-0 mt-2 w-64 rounded-2xl shadow-2xl glass-effect ring-1 ring-black ring-opacity-5 divide-y divide-gray-200/50 focus:outline-none smooth-transition transform opacity-0 scale-95 origin-top-right">
                         <div class="px-4 py-4">
                             <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0345e4] via-[#026af2] to-[#00279c] flex items-center justify-center text-white">
                                     <i class="fas fa-user"></i>
                                 </div>
                                 <div>
-                                    <p class="text-sm font-semibold text-gray-900">Admin User</p>
+                                    <p class="text-sm font-semibold text-gray-900">Admin</p>
                                     <p class="text-xs text-gray-500">admin@example.com</p>
                                 </div>
                             </div>

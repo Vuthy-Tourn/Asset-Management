@@ -131,7 +131,7 @@ function getActivityStyle($type)
 
                 <!-- Enhanced View All Activity Button -->
                 <div class="mt-8 text-center">
-                    <button class="group inline-flex items-center px-8 py-4 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-800 text-white font-bold hover:from-slate-800 hover:to-slate-900 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
+                    <button class="group inline-flex items-center px-8 py-4 rounded-2xl bg-gradient-to-br from-[#0345e4] via-[#026af2] to-[#00279c] text-white font-bold transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
                         <i class="fas fa-history mr-3 group-hover:animate-spin"></i>
                         View Complete Activity Log
                         <i class="fas fa-arrow-right ml-3 group-hover:translate-x-1 transition-transform"></i>

@@ -69,7 +69,7 @@ function initCategoryChart() {
         },
       },
       animation: {
-        duration: 2500,
+        duration: 1500,
         easing: "easeOutCubic",
       },
     },
@@ -104,7 +104,7 @@ function initFloorChart() {
         {
           label: "Categories per Floor",
           data: data,
-          backgroundColor: modernColors.slice(2, data.length),
+          backgroundColor: modernColors.slice(0, data.length),
           borderRadius: 8,
           borderSkipped: false,
           hoverBackgroundColor: modernColors
@@ -159,7 +159,7 @@ function initFloorChart() {
         },
       },
       animation: {
-        duration: 2000,
+        duration: 1500,
         easing: "easeOutBounce",
       },
       interaction: {
@@ -261,7 +261,7 @@ function initChartLoadingIndicators() {
         `;
     container.appendChild(spinner);
 
-    setTimeout(() => spinner.remove(), 1000);
+    setTimeout(() => spinner.remove(), 500);
   });
 }
 
@@ -278,7 +278,7 @@ function initDashboard() {
   initChartLoadingIndicators();
 
   // Start counter animation after a delay
-  setTimeout(animateCounters, 1000);
+  setTimeout(animateCounters, 800);
 
   console.log("🚀 Dashboard initialized successfully!");
 }

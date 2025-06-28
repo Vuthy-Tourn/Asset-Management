@@ -32,8 +32,8 @@ $table = new DataTable($conn, [
                 return '
                     <div class="flex items-center">
                         <div class="flex-shrink-0 h-12 w-12">
-                            <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-                                <i class="fas fa-box text-white text-lg"></i>
+                            <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-[#0345e4] via-[#026af2] to-[#00279c] flex items-center justify-center">
+                                <i class="fas fa-box-open text-white text-lg"></i>
                             </div>
                         </div>
                         <div class="ml-4">
@@ -56,11 +56,28 @@ $table = new DataTable($conn, [
                 'Desktop' => 'blue',
                 'Laptop' => 'purple',
                 'Furniture' => 'yellow',
+                'Routers & Switches' => 'pink',
+                'Printers'=> 'indigo',
+                'Air Conditioners' => 'rose',
                 'Uncategorized' => 'gray'
             ],
             'default_color' => 'gray'
         ],
-        ['name' => 'floor_name', 'label' => 'Floor', 'nowrap' => true],
+        [
+            'name' => 'floor_name',
+            'label' => 'Floor',
+            'format' => 'badge',
+            'colors' => [
+                'Ground' => 'purple',  // Must match exactly or implement case-insensitive matching
+                'First' => 'cyan',
+                'Second' => 'yellow',
+                'Third' => 'green',
+                'Fourth' => 'sky',
+                'Fifth' => 'fuchsia'
+            ],
+            'default_color' => 'gray',
+            'nowrap' => true
+        ],
         ['name' => 'created_at', 'label' => 'Created', 'format' => 'date', 'nowrap' => true],
     ],
     'joins' => [
@@ -114,15 +131,19 @@ $table = new DataTable($conn, [
                 <!-- Page Header -->
                 <?php
                 renderPageHeader(
-                    "Product Management",
-                    "Manage your inventory and product information",
+                    'Product Management',
+                    'Manage your inventory and product information',
                     [
                         'text' => 'Add New Product',
                         'icon' => 'fa-plus',
                         'modalId' => 'createProduct',
                         'modalUrl' => 'create.php',
                         'modalTarget' => 'createProductContent'
-                    ]
+                    ],
+                    [
+                        ['title' => 'Dashboard', 'url' => '/Uni-PHP/Assignment/index.php'],
+                        ['title' => 'Products'] // Current page (no link)
+                    ],
                 );
                 ?>
 
@@ -138,23 +159,23 @@ $table = new DataTable($conn, [
     <?php
     renderModal(
         'createProduct',
+        "fa-solid fa-plus",
         'Add New Product',
         'createProductContent', // Must match data-modal-target
         'medium',
         true, // Include default content div
         true, // Include footer with default buttons
-        "fa-solid fa-plus"
     );
 
     // Edit Product Modal
     renderModal(
         'editProductsModal',
+        "fas fa-edit",
         'Edit Product',
         'editProductsContent',
         'medium',
         true,
         'edit-product-modal', // additional classes
-        "fas fa-edit"
     );
 
     renderDeleteModal(
@@ -189,6 +210,7 @@ $table = new DataTable($conn, [
     <!-- Scripts -->
     <script src="../js/modal.js"></script>
     <script src="../js/search.js"></script>
+    <script src="../js/pagination.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         AOS.init({

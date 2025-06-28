@@ -10,7 +10,7 @@ $nav_items = [
         'subtitle' => 'Overview & Analytics',
         'icon' => 'fas fa-tachometer-alt',
         'url' => '/Uni-PHP/Assignment/index.php',
-        'active' => $current_page == 'index.php' && $current_dir != 'floor' && $current_dir != 'category' && $current_dir != 'products',
+        'active' => $current_page == 'index.php' && $current_dir == 'Assignment',
         'color' => 'blue'
     ],
     [
@@ -18,7 +18,7 @@ $nav_items = [
         'subtitle' => 'Building Management',
         'icon' => 'fas fa-building',
         'url' => '/Uni-PHP/Assignment/floor/read.php',
-        'active' => strpos($_SERVER['PHP_SELF'], 'floor/') !== false,
+        'active' => $current_dir == 'floor',
         'color' => 'emerald'
     ],
     [
@@ -26,7 +26,7 @@ $nav_items = [
         'subtitle' => 'Item Classification',
         'icon' => 'fas fa-tags',
         'url' => '/Uni-PHP/Assignment/category/read.php',
-        'active' => strpos($_SERVER['PHP_SELF'], 'category/') !== false,
+        'active' => $current_dir == 'category',
         'color' => 'purple'
     ],
     [
@@ -34,7 +34,7 @@ $nav_items = [
         'subtitle' => 'Asset Inventory',
         'icon' => 'fas fa-boxes',
         'url' => '/Uni-PHP/Assignment/products/read.php',
-        'active' => strpos($_SERVER['PHP_SELF'], 'products/') !== false,
+        'active' => $current_dir == 'products',
         'color' => 'orange'
     ]
 ];
@@ -42,36 +42,28 @@ $nav_items = [
 $additional_nav_items = [
     [
         'title' => 'Activities',
-        'subtitle' => 'Recently Activity',
+        'subtitle' => 'Recent Activity',
         'icon' => 'fa-solid fa-chart-line',
         'url' => '/Uni-PHP/Assignment/pages/recent_data.php',
-        'active' => strpos($_SERVER['PHP_SELF'], 'recent-data/') !== false,
+        'active' => $current_page == 'recent_data.php' && $current_dir == 'pages',
         'color' => 'yellow'
     ],
     [
         'title' => 'Analytics',
         'subtitle' => 'Data Insights',
         'icon' => 'fas fa-chart-bar',
-        'url' => '/Uni-PHP/Assignment/analytics/index.php',
-        'active' => strpos($_SERVER['PHP_SELF'], 'analytics/') !== false,
+        'url' => '#',
+        'active' => false, // Set to true when you have actual pages
         'color' => 'teal'
     ],
     [
         'title' => 'Reports',
         'subtitle' => 'Export & Print',
         'icon' => 'fas fa-file-alt',
-        'url' => '/Uni-PHP/Assignment/reports/index.php',
-        'active' => strpos($_SERVER['PHP_SELF'], 'reports/') !== false,
+        'url' => '#',
+        'active' => false, // Set to true when you have actual pages
         'color' => 'indigo'
-    ],
-    // [
-    //     'title' => 'Settings',
-    //     'subtitle' => 'System Config',
-    //     'icon' => 'fas fa-cog',
-    //     'url' => '/Uni-PHP/Assignment/settings/index.php',
-    //     'active' => strpos($_SERVER['PHP_SELF'], 'settings/') !== false,
-    //     'color' => 'gray'
-    // ]
+    ]
 ];
 ?>
 
@@ -121,7 +113,10 @@ $additional_nav_items = [
     }
 
     .active-indicator {
-        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        background: linear-gradient(to bottom right,
+                #0345e4 0%,
+                #026af2 50%,
+                #00279c 100%);
         box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
         border-left: 4px solid #ffffff;
     }
@@ -139,6 +134,7 @@ $additional_nav_items = [
             transform: translateX(-100%);
             opacity: 0;
         }
+
         to {
             transform: translateX(0);
             opacity: 1;
@@ -150,6 +146,7 @@ $additional_nav_items = [
             transform: translateX(0);
             opacity: 1;
         }
+
         to {
             transform: translateX(-100%);
             opacity: 0;
@@ -201,10 +198,13 @@ $additional_nav_items = [
     }
 
     @keyframes pulse-glow {
-        0%, 100% {
+
+        0%,
+        100% {
             transform: scale(1);
             box-shadow: 0 0 5px rgba(34, 197, 94, 0.5);
         }
+
         50% {
             transform: scale(1.1);
             box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
@@ -221,7 +221,7 @@ $additional_nav_items = [
         .sidebar-mobile-hidden {
             transform: translateX(-100%);
         }
-        
+
         .sidebar-mobile-shown {
             transform: translateX(0);
         }
@@ -241,16 +241,16 @@ $additional_nav_items = [
     <div class="relative p-4 lg:p-6 pb-4 flex items-center justify-between border-b border-white/20">
         <div class="flex items-center space-x-3 lg:space-x-4 sidebar-brand-hover smooth-transition">
             <div class="relative">
-                <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-blue-400 via-purple-500 to-indigo-600 flex items-center justify-center shadow-xl smooth-transition">
+                <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-gradient-to-br from-[#0345e4] via-[#026af2] to-[#00279c] flex items-center justify-center shadow-xl smooth-transition">
                     <i class="fas fa-cube text-white text-lg lg:text-xl"></i>
                 </div>
                 <div class="absolute -top-1 -right-1 w-3 h-3 lg:w-4 lg:h-4 bg-green-400 rounded-full border-2 border-slate-800 notification-badge"></div>
             </div>
             <div class="hidden sm:block">
-                <h1 class="text-lg lg:text-xl font-bold tracking-tight bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                    Asset Manager
+                <h1 class="text-lg font-bold tracking-tight bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
+                    Asset Management
                 </h1>
-                <p class="text-xs text-blue-300/70 font-medium">Management System v2.0</p>
+                <p class="text-xs text-blue-300/70 font-medium">Management System v1.0</p>
             </div>
         </div>
         <button id="sidebar-close-button" class="md:hidden p-2 rounded-xl text-blue-300 hover:text-white hover:bg-white/10 smooth-transition hover-lift">
@@ -287,7 +287,7 @@ $additional_nav_items = [
 
                         <?php if ($item['active']): ?>
                             <div class="flex items-center space-x-2">
-                                <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                                <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
                                 <i class="fas fa-chevron-right text-white text-xs"></i>
                             </div>
                         <?php else: ?>
@@ -327,7 +327,7 @@ $additional_nav_items = [
 
                         <?php if ($item['active']): ?>
                             <div class="flex items-center space-x-2">
-                                <div class="w-2 h-2 rounded-full bg-white animate-pulse"></div>
+                                <div class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
                                 <i class="fas fa-chevron-right text-white text-xs"></i>
                             </div>
                         <?php else: ?>
@@ -348,8 +348,8 @@ $additional_nav_items = [
                         <i class="fas fa-info-circle text-white text-xs lg:text-sm"></i>
                     </div>
                     <div>
-                        <div class="text-white font-medium text-xs lg:text-sm">System Status</div>
-                        <div class="text-blue-300/70 text-xs">Online • v2.0.0</div>
+                        <div class="text-white font-medium text-xs lg:text-sm">Created By</div>
+                        <div class="text-blue-300/80 text-xs">TOURN VUTHY</div>
                     </div>
                 </div>
                 <div class="flex items-center space-x-1 lg:space-x-2">
@@ -372,106 +372,106 @@ $additional_nav_items = [
 
 <!-- JavaScript for Sidebar -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const sidebar = document.getElementById('sidebar');
-    const mobileMenuButton = document.getElementById('mobile-menu-button');
-    const sidebarCloseButton = document.getElementById('sidebar-close-button');
-    const overlay = document.getElementById('sidebar-overlay');
-    let sidebarOpen = false;
+    document.addEventListener('DOMContentLoaded', function() {
+        const sidebar = document.getElementById('sidebar');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const sidebarCloseButton = document.getElementById('sidebar-close-button');
+        const overlay = document.getElementById('sidebar-overlay');
+        let sidebarOpen = false;
 
-    function toggleSidebar() {
-        sidebarOpen = !sidebarOpen;
-        if (sidebarOpen) {
-            sidebar.classList.remove('-translate-x-full');
-            sidebar.classList.add('mobile-menu-enter');
-            overlay.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
+        function toggleSidebar() {
+            sidebarOpen = !sidebarOpen;
+            if (sidebarOpen) {
+                sidebar.classList.remove('-translate-x-full');
+                sidebar.classList.add('mobile-menu-enter');
+                overlay.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
 
-            setTimeout(() => {
-                sidebar.classList.remove('mobile-menu-enter');
-            }, 300);
-        } else {
-            sidebar.classList.add('mobile-menu-exit');
-            overlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-
-            setTimeout(() => {
-                sidebar.classList.add('-translate-x-full');
-                sidebar.classList.remove('mobile-menu-exit');
-            }, 300);
-        }
-    }
-
-    if (mobileMenuButton) {
-        mobileMenuButton.addEventListener('click', toggleSidebar);
-    }
-
-    if (sidebarCloseButton) {
-        sidebarCloseButton.addEventListener('click', toggleSidebar);
-    }
-
-    if (overlay) {
-        overlay.addEventListener('click', toggleSidebar);
-    }
-
-    function handleResize() {
-        if (window.innerWidth >= 768) {
-            sidebar.classList.remove('-translate-x-full', 'mobile-menu-enter', 'mobile-menu-exit');
-            overlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-            sidebarOpen = false;
-        } else if (!sidebarOpen) {
-            sidebar.classList.add('-translate-x-full');
-            overlay.classList.add('hidden');
-        }
-    }
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    // Smooth scroll for navigation links
-    document.querySelectorAll('.nav-item a').forEach(link => {
-        link.addEventListener('click', function(e) {
-            const icon = this.querySelector('i');
-            const originalClass = icon.className;
-            icon.className = 'fas fa-spinner fa-spin text-lg';
-
-            setTimeout(() => {
-                icon.className = originalClass;
-            }, 500);
-        });
-    });
-
-    // Keyboard navigation support
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && sidebarOpen && window.innerWidth < 768) {
-            toggleSidebar();
-        }
-        if (e.ctrlKey && e.key === 'b' && window.innerWidth < 768) {
-            e.preventDefault();
-            toggleSidebar();
-        }
-    });
-
-    // Focus trap for accessibility
-    const focusableElements = sidebar.querySelectorAll('button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])');
-    const firstFocusableElement = focusableElements[0];
-    const lastFocusableElement = focusableElements[focusableElements.length - 1];
-
-    sidebar.addEventListener('keydown', function(e) {
-        if (e.key === 'Tab') {
-            if (e.shiftKey) {
-                if (document.activeElement === firstFocusableElement) {
-                    lastFocusableElement.focus();
-                    e.preventDefault();
-                }
+                setTimeout(() => {
+                    sidebar.classList.remove('mobile-menu-enter');
+                }, 300);
             } else {
-                if (document.activeElement === lastFocusableElement) {
-                    firstFocusableElement.focus();
-                    e.preventDefault();
-                }
+                sidebar.classList.add('mobile-menu-exit');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+
+                setTimeout(() => {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebar.classList.remove('mobile-menu-exit');
+                }, 300);
             }
         }
+
+        if (mobileMenuButton) {
+            mobileMenuButton.addEventListener('click', toggleSidebar);
+        }
+
+        if (sidebarCloseButton) {
+            sidebarCloseButton.addEventListener('click', toggleSidebar);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', toggleSidebar);
+        }
+
+        function handleResize() {
+            if (window.innerWidth >= 768) {
+                sidebar.classList.remove('-translate-x-full', 'mobile-menu-enter', 'mobile-menu-exit');
+                overlay.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                sidebarOpen = false;
+            } else if (!sidebarOpen) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('.nav-item a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const icon = this.querySelector('i');
+                const originalClass = icon.className;
+                icon.className = 'fas fa-spinner fa-spin text-lg';
+
+                setTimeout(() => {
+                    icon.className = originalClass;
+                }, 500);
+            });
+        });
+
+        // Keyboard navigation support
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && sidebarOpen && window.innerWidth < 768) {
+                toggleSidebar();
+            }
+            if (e.ctrlKey && e.key === 'b' && window.innerWidth < 768) {
+                e.preventDefault();
+                toggleSidebar();
+            }
+        });
+
+        // Focus trap for accessibility
+        const focusableElements = sidebar.querySelectorAll('button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        const firstFocusableElement = focusableElements[0];
+        const lastFocusableElement = focusableElements[focusableElements.length - 1];
+
+        sidebar.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                if (e.shiftKey) {
+                    if (document.activeElement === firstFocusableElement) {
+                        lastFocusableElement.focus();
+                        e.preventDefault();
+                    }
+                } else {
+                    if (document.activeElement === lastFocusableElement) {
+                        firstFocusableElement.focus();
+                        e.preventDefault();
+                    }
+                }
+            }
+        });
     });
-});
 </script>

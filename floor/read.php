@@ -62,7 +62,11 @@ $table = new DataTable($conn, [
                         'modalId' => 'createFloor',
                         'modalUrl' => 'create.php',
                         'modalTarget' => 'createFloorContent'
-                    ]
+                    ],
+                    [
+                        ['title' => 'Dashboard', 'url' => '/Uni-PHP/Assignment/index.php'],
+                        ['title' => 'Categories'] // Current page (no link)
+                    ],
                 );
                 ?>
 
@@ -81,23 +85,23 @@ $table = new DataTable($conn, [
     <?php
     renderModal(
         'createFloor',
+        "fa-solid fa-plus",
         'Add New Floor',
         'createFloorContent', // Must match data-modal-target
         'medium',
         true, // Include default content div
         true, // Include footer with default buttons
-        "fa-solid fa-plus"
     );
 
     // Edit Floor Modal
     renderModal(
         'editFloorModal',
+        "fas fa-edit",
         'Edit Floor',
         'editFloorContent',
         'medium',
         true,
         'edit-floor-modal', // additional classes
-        "fas fa-edit"
     );
 
     renderDeleteModal(
@@ -131,6 +135,7 @@ $table = new DataTable($conn, [
 
     <script src="../js/modal.js"></script>
     <script src="../js/search.js"></script>
+    <script src="../js/pagination.js"></script>
 </body>
 
 </html>

@@ -1,10 +1,10 @@
 <?php
 function renderModal(
     string $modalId,
-    string $title,
     string $icon,
+    string $title,
     string $contentId,
-    string $size = 'large', // small, medium, large, xlarge
+    string $size = 'medium', // small, medium, large, xlarge
     bool $includeDefaultContentDiv = true,
     string $additionalClasses = '',
 ) {
@@ -26,11 +26,12 @@ function renderModal(
             role="document">
             <!-- Header -->
             <div class="flex justify-between items-center border-b border-gray-200 p-4">
-                <h3 id="<?= htmlspecialchars($modalId) ?>-title" class="text-2xl font-semibold text-gray-800 flex items-center">
-                    <i class=" <?= htmlspecialchars($icon) ?> text-green-600 mr-3"></i>
-                    <?= htmlspecialchars($title) ?>
-                </h3>
-
+                <div class="flex items-center"> <!-- Added container div -->
+                    <i class="<?= htmlspecialchars($icon) ?> text-green-600 text-xl mr-3"></i>
+                    <h3 id="<?= htmlspecialchars($modalId) ?>-title" class="text-2xl font-semibold text-gray-800">
+                        <?= htmlspecialchars($title) ?>
+                    </h3>
+                </div>
                 <button type="button"
                     data-modal-close="<?= htmlspecialchars($modalId) ?>"
                     class="text-gray-500 hover:text-gray-700 text-2xl focus:outline-none"
@@ -81,6 +82,7 @@ function renderDeleteModal(
             role="document">
             <div class="flex justify-between items-center border-b border-gray-200 p-4">
                 <h3 id="<?= htmlspecialchars($modalId) ?>-title" class="text-xl font-bold text-gray-900">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl mr-3"></i>
                     <?= htmlspecialchars($title) ?>
                 </h3>
                 <button type="button"
@@ -93,7 +95,6 @@ function renderDeleteModal(
 
             <div class="p-6">
                 <div class="flex items-center mb-4">
-                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl mr-3"></i>
                     <p class="text-gray-700"><?= htmlspecialchars($message) ?></p>
                 </div>
 

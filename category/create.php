@@ -20,10 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($conn->query($sql)) {
         flash('success', 'Category added successfully');
-        exit;
     } else {
         flash('error', 'Error adding category: ' . $conn->error);
     }
+    header("Location: read.php");
+    exit;
 }
 
 ?>

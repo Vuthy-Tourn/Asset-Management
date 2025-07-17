@@ -2,7 +2,7 @@
 require_once '../components/config/db.php';
 require_once '../components/flash.php';
 
-session_start();
+
 $id = intval($_GET['id'] ?? 0);
 
 if (!$id) {
@@ -22,6 +22,8 @@ if ($categoryCount > 0) {
 // Delete the floor
 if ($conn->query("DELETE FROM floor WHERE id = $id") === TRUE) {
     flash('success', 'Floor deleted successfully');
+    header("Location: read.php");
+    exit;
 } else {
     flash('error', 'Failed to delete floor');
 }

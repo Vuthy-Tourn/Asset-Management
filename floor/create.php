@@ -2,7 +2,7 @@
 require_once '../components/config/db.php';
 require_once '../components/flash.php';
 
-session_start();
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'] ?? '';

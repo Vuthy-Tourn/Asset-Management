@@ -303,11 +303,11 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
                 <!-- User Profile -->
                 <div class="relative">
                     <button type="button" id="user-menu-button"
-                        class="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100/80 focus:outline-none focus:ring-2 focus:ring-indigo-500 smooth-transition group">
-                        <span class="text-gray-700 hidden sm:inline text-sm font-medium">Admin</span>
+                        class="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-100/80 focus:outline-none smooth-transition group">
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0345e4] via-[#026af2] to-[#00279c] flex items-center justify-center text-white shadow-lg hover-lift smooth-transition">
                             <i class="fas fa-user text-sm"></i>
                         </div>
+                        <span class="text-gray-700 hidden sm:inline text-sm font-medium">Admin</span>
                     </button>
 
                     <!-- User Dropdown menu -->
@@ -316,11 +316,23 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
                         <div class="px-4 py-4">
                             <div class="flex items-center space-x-3">
                                 <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0345e4] via-[#026af2] to-[#00279c] flex items-center justify-center text-white">
-                                    <i class="fas fa-user"></i>
+                                    <!-- Display user's initials if available -->
+                                    <?php if (!empty($_SESSION['name'])): ?>
+                                        <?= substr($_SESSION['name'], 0, 1) ?>
+                                    <?php else: ?>
+                                        <i class="fas fa-user"></i>
+                                    <?php endif; ?>
                                 </div>
                                 <div>
-                                    <p class="text-sm font-semibold text-gray-900">Admin</p>
-                                    <p class="text-xs text-gray-500">admin@example.com</p>
+                                    <!-- Display user's name -->
+                                    <p class="text-sm font-semibold text-gray-900">
+                                        <?= !empty($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : 'Admin' ?>
+                                    </p>
+
+                                    <!-- Display user's email -->
+                                    <p class="text-xs text-gray-500">
+                                        <?= !empty($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : 'admin@example.com' ?>
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -339,7 +351,7 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
                             </a>
                         </div>
                         <div class="py-2">
-                            <a href="#" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50/80 smooth-transition">
+                            <a href="./auth/logout.php" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50/80 smooth-transition">
                                 <i class="fas fa-sign-out-alt w-4 mr-3"></i>
                                 Sign out
                             </a>

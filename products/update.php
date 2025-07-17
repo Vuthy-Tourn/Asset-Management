@@ -3,7 +3,7 @@ require_once '../components/config/db.php';
 require_once '../components/flash.php';
 require_once '../components/toast.php';
 
-session_start();
+
 
 // Input validation
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);

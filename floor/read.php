@@ -5,7 +5,7 @@ require_once '../components/flash.php';
 require_once '../components/datatable.php';
 require_once '../components/page_header.php';
 require_once '../components/modal.php';
-session_start();
+
 
 // Display flash message if exists
 $flash = flash();
@@ -19,7 +19,21 @@ $table = new DataTable($conn, [
     'primaryKey' => 'id',
     'columns' => [
         ['name' => 'id', 'label' => 'ID', 'nowrap' => true],
-        ['name' => 'name', 'label' => 'Name'],
+        [
+            'name' => 'name',
+            'label' => 'Name',
+            'format' => 'badge',
+            'colors' => [
+                'Ground' => 'purple',  // Must match exactly or implement case-insensitive matching
+                'First' => 'cyan',
+                'Second' => 'yellow',
+                'Third' => 'green',
+                'Fourth' => 'sky',
+                'Fifth' => 'fuchsia'
+            ],
+            'default_color' => 'gray',
+            'nowrap' => true
+        ],
         ['name' => 'code', 'label' => 'Code', 'nowrap' => true],
         ['name' => 'note', 'label' => 'Note', 'format' => 'truncate', 'length' => 50],
         ['name' => 'created_at', 'label' => 'Created At', 'format' => 'date', 'nowrap' => true],

@@ -3,7 +3,7 @@ require_once '../components/config/db.php';
 require_once '../components/flash.php';
 require_once '../components/toast.php';
 
-session_start();
+
 $id = intval($_GET['id'] ?? 0);
 
 if (!$id) {

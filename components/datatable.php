@@ -204,7 +204,7 @@ class DataTable
                                     name="search"
                                     value="<?= htmlspecialchars($this->searchTerm) ?>"
                                     placeholder="Search <?= $this->config['table'] ?>..."
-                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0345e4] focus:border-transparent transition-all duration-200"
                                     autocomplete="off">
                                 <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
                                 <!-- Add loading spinner if needed -->
@@ -222,11 +222,11 @@ class DataTable
                     <?php if ($hasFilters): ?>
                         <div class="flex items-center space-x-3 hidden md:flex">
                             <?php if (!empty($this->filters) || !empty($this->searchTerm)): ?>
-                                <a href="<?= strtok($_SERVER['REQUEST_URI'], '?') ?>" class="inline-flex items-center px-3.5 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                                <a href="<?= strtok($_SERVER['REQUEST_URI'], '?') ?>" class="inline-flex items-center px-3.5 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0345e4]">
                                     Reset All
                                 </a>
                             <?php endif; ?>
-                            <button @click="filtersOpen = !filtersOpen" type="button" class="inline-flex items-center px-3.5 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                            <button @click="filtersOpen = !filtersOpen" type="button" class="inline-flex items-center px-3.5 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0345e4]">
                                 <svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
                                 </svg>
@@ -251,7 +251,7 @@ class DataTable
                                                 <select
                                                     id="<?= $filterName ?>"
                                                     name="<?= $filterName ?>"
-                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500">
+                                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#0345e4] focus:border-[#0345e4]">
                                                     <?php foreach ($this->getFilterOptions($filterName) as $value => $label): ?>
                                                         <option value="<?= htmlspecialchars($value) ?>"
                                                             <?= isset($this->filters[$filterName]) && $this->filters[$filterName] == $value ? 'selected' : '' ?>>
@@ -269,7 +269,7 @@ class DataTable
                                                 Time Period
                                             </label>
                                             <div class="mt-1 relative">
-                                                <select id="time_filter" name="time_filter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 rounded-md shadow-sm">
+                                                <select id="time_filter" name="time_filter" class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-[#0345e4] focus:border-[#0345e4] rounded-md shadow-sm">
                                                     <?php foreach ($this->config['timeFilterOptions'] as $value => $label): ?>
                                                         <option value="<?= htmlspecialchars($value) ?>" <?= $this->timeFilter === $value ? 'selected' : '' ?>>
                                                             <?= htmlspecialchars($label) ?>
@@ -346,8 +346,8 @@ class DataTable
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <?php foreach ($this->data as $row): ?>
-                                <tr>
+                            <?php foreach ($this->data as $index => $row): ?>
+                                <tr class="<?= $index % 2 === 0 ? 'bg-white' : 'bg-gray-50' ?>">
                                     <?php foreach ($this->config['columns'] as $column): ?>
                                         <td class="px-6 py-4 <?= $column['nowrap'] ?? false ? 'whitespace-nowrap' : '' ?>">
                                             <?= $this->renderColumn($row, $column) ?>

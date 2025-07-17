@@ -1,27 +1,41 @@
 <?php
-require_once './components/config/db.php';
+require_once __DIR__ . '/components/config/db.php';
+require_once './components/toast.php';
+require_once './components/flash.php';
 
-// Count totals for dashboard
-$floors = $conn->query("SELECT COUNT(*) FROM floor")->fetch_row()[0];
-$categories = $conn->query("SELECT COUNT(*) FROM category")->fetch_row()[0];
-$products = $conn->query("SELECT COUNT(*) FROM products")->fetch_row()[0];
+if (
+    empty($_SESSION['logged_in'])
+) {
+    session_destroy();
+    header("Location: ./auth/login.php");
+    exit();
+}
+// Fetch user data with error handling
+try {
 
-// Get data for category chart (products per category)
-$categoriesData = $conn->query("
-    SELECT c.name, COUNT(p.id) as product_count 
-    FROM category c
-    LEFT JOIN products p ON c.id = p.category_id
-    GROUP BY c.id
-")->fetch_all(MYSQLI_ASSOC);
+    // Get dashboard stats
+    $floors = $conn->query("SELECT COUNT(*) FROM floor")->fetch_row()[0];
+    $categories = $conn->query("SELECT COUNT(*) FROM category")->fetch_row()[0];
+    $products = $conn->query("SELECT COUNT(*) FROM products")->fetch_row()[0];
 
-// Get data for floor chart (categories per floor)
-$floorsData = $conn->query("
-    SELECT f.name, COUNT(c.id) as category_count 
-    FROM floor f
-    LEFT JOIN category c ON f.id = c.floor_id
-    GROUP BY f.id
-")->fetch_all(MYSQLI_ASSOC);
+    // Get chart data
+    $categoriesData = $conn->query("
+        SELECT c.name, COUNT(p.id) as product_count 
+        FROM category c
+        LEFT JOIN products p ON c.id = p.category_id
+        GROUP BY c.id
+    ")->fetch_all(MYSQLI_ASSOC);
 
+    $floorsData = $conn->query("
+        SELECT f.name, COUNT(c.id) as category_count 
+        FROM floor f
+        LEFT JOIN category c ON f.id = c.floor_id
+        GROUP BY f.id
+    ")->fetch_all(MYSQLI_ASSOC);
+} catch (Exception $e) {
+    error_log("Dashboard error: " . $e->getMessage());
+    die("Error loading dashboard data. Please try again later.");
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -295,6 +309,7 @@ $floorsData = $conn->query("
 
 
     <script src="./js/index.js"></script>
+    <?php showToast(); ?>
 </body>
 
 </html>

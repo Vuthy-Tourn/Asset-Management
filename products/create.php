@@ -2,7 +2,7 @@
 require_once '../components/config/db.php';
 require_once '../components/flash.php';
 
-session_start();
+
 
 // Fetch all categories for dropdown
 $categories = [];

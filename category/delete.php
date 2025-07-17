@@ -1,7 +1,7 @@
 <?php
 require_once '../components/config/db.php';
 
-session_start();
+
 $id = $_GET['id'] ?? 0;
 
 if (!$id) {
@@ -21,6 +21,8 @@ if ($productCount > 0) {
 // Delete the category
 if ($conn->query("DELETE FROM category WHERE id = ?") === TRUE) {
     flash('success', 'Category deleted successfully');
+    header("Location: read.php");
+    exit;
 } else {
     flash('error', 'Failed to delete category');
 }

@@ -3,7 +3,7 @@ require_once '../components/config/db.php';
 require_once '../components/flash.php';
 require_once '../components/toast.php';
 
-session_start();
+
 $id = intval($_GET['id'] ?? 0);
 
 if (!$id) {
@@ -20,8 +20,8 @@ if (!$floor) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim($_POST['name'] ?? '');
-    $code = trim($_POST['code'] ?? '');
+    $name = $conn->real_escape_string($_POST['name'] ?? '');
+    $code = $conn->real_escape_string($_POST['code'] ?? '');
     $note = trim($_POST['note'] ?? '');
 
     // Validation
@@ -34,26 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Floor code is required';
     }
 
-    if (!empty($errors)) {
-        foreach ($errors as $error) {
-            showToast($error, 'error');
-        }
-        // Store input for repopulating form
-        $_SESSION['old_input'] = [
-            'name' => $name,
-            'code' => $code,
-            'note' => $note
-        ];
-        $_SESSION['flash'] = [
-            'type' => 'fail',
-            'message' => 'Error updating floor: ' . implode(', ', $errors)
-        ];
-        header("Location: update.php");
-        exit;
-    }
+    $sql = "UPDATE floor SET 
+            name = '$name', 
+            code = '$code', 
+            note = '$note' 
+            WHERE id = $id";
 
-    $stmt = $conn->prepare("UPDATE floor SET name=?, code=?, note=? WHERE id=?");
-    if ($stmt->execute([$name, $code, $note, $id])) {
+    if ($conn->query($sql)) {
         $_SESSION['flash'] = [
             'type' => 'success',
             'message' => 'Floor updated successfully'
@@ -78,8 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body>
+    <!-- Change action to update.php and add method="POST" -->
+    <form action="update.php?id=<?= $id ?>" method="POST">
+        <!-- Add hidden ID field for extra security -->
+        <input type="hidden" name="id" value="<?= $id ?>">
 
-    <form action="create.php" method="POST">
         <div class="space-y-6">
             <!-- Name Field -->
             <div>

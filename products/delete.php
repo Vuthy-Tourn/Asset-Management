@@ -2,7 +2,7 @@
 require_once '../components/config/db.php';
 require_once '../components/flash.php';
 
-session_start();
+
 
 $id = $_GET['id'] ?? null;
 
@@ -18,9 +18,10 @@ $id = (int)$id;
 $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
 if ($stmt->execute([$id])) {
     flash('success', 'Product deleted successfully');
+    header("Location: read.php");
+    exit;
 } else {
     flash('error', 'Failed to delete product');
 }
 
-header("Location: read.php");
-exit;
+

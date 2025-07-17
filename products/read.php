@@ -4,7 +4,7 @@ require_once '../components/flash.php';
 require_once '../components/datatable.php';
 require_once '../components/page_header.php';
 require_once '../components/modal.php';
-session_start();
+
 
 // Display flash message if exists
 $flash = flash();
@@ -57,7 +57,7 @@ $table = new DataTable($conn, [
                 'Laptop' => 'purple',
                 'Furniture' => 'yellow',
                 'Routers & Switches' => 'pink',
-                'Printers'=> 'indigo',
+                'Printers' => 'indigo',
                 'Air Conditioners' => 'rose',
                 'Uncategorized' => 'gray'
             ],

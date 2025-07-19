@@ -152,7 +152,7 @@ try {
 
                                 <div class="space-y-4">
                                     <div>
-                                        <p class="text-xs text-white/70 mb-1">Last Updated</p>
+                                        <p class="text-xs text-white/70 mb-1">Right Now</p>
                                         <p class="font-medium"><?php
                                                                 date_default_timezone_set('Asia/Phnom_Penh');
                                                                 echo date('g:i A'); // Will now show Cambodia time

@@ -87,13 +87,42 @@ function generateRecentNotifications($conn)
 function timeAgo($datetime)
 {
     $time = strtotime($datetime);
+    if ($time === false) {
+        return "Invalid date"; // Handle invalid dates gracefully
+    }
+
     $now = time();
     $diff = $now - $time;
 
-    if ($diff < 60) return $diff . " seconds ago";
-    if ($diff < 3600) return floor($diff / 60) . " minutes ago";
-    if ($diff < 86400) return floor($diff / 3600) . " hours ago";
-    if ($diff < 604800) return floor($diff / 86400) . " days ago";
+    // Handle future dates (edge case)
+    if ($diff < 0) {
+        return "Just now";
+    }
+
+    // Seconds
+    if ($diff < 60) {
+        return $diff == 1 ? "1 second ago" : "$diff seconds ago";
+    }
+
+    // Minutes
+    $minutes = floor($diff / 60);
+    if ($minutes < 60) {
+        return $minutes == 1 ? "1 minute ago" : "$minutes minutes ago";
+    }
+
+    // Hours
+    $hours = floor($diff / 3600);
+    if ($hours < 24) {
+        return $hours == 1 ? "1 hour ago" : "$hours hours ago";
+    }
+
+    // Days
+    $days = floor($diff / 86400);
+    if ($days < 7) {
+        return $days == 1 ? "1 day ago" : "$days days ago";
+    }
+
+    // Fallback to formatted date
     return date('M j, Y', $time);
 }
 
@@ -351,7 +380,7 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
                             </a>
                         </div>
                         <div class="py-2">
-                            <a href="./auth/logout.php" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50/80 smooth-transition">
+                            <a href="../auth/logout.php" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50/80 smooth-transition">
                                 <i class="fas fa-sign-out-alt w-4 mr-3"></i>
                                 Sign out
                             </a>

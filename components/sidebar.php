@@ -48,22 +48,22 @@ $additional_nav_items = [
         'active' => $current_page == 'recent_data.php' && $current_dir == 'pages',
         'color' => 'yellow'
     ],
-    [
-        'title' => 'Analytics',
-        'subtitle' => 'Data Insights',
-        'icon' => 'fas fa-chart-bar',
-        'url' => '#',
-        'active' => false, // Set to true when you have actual pages
-        'color' => 'teal'
-    ],
-    [
-        'title' => 'Reports',
-        'subtitle' => 'Export & Print',
-        'icon' => 'fas fa-file-alt',
-        'url' => '#',
-        'active' => false, // Set to true when you have actual pages
-        'color' => 'indigo'
-    ]
+    // [
+    //     'title' => 'Analytics',
+    //     'subtitle' => 'Data Insights',
+    //     'icon' => 'fas fa-chart-bar',
+    //     'url' => '#',
+    //     'active' => false, // Set to true when you have actual pages
+    //     'color' => 'teal'
+    // ],
+    // [
+    //     'title' => 'Reports',
+    //     'subtitle' => 'Export & Print',
+    //     'icon' => 'fas fa-file-alt',
+    //     'url' => '#',
+    //     'active' => false, // Set to true when you have actual pages
+    //     'color' => 'indigo'
+    // ]
 ];
 ?>
 

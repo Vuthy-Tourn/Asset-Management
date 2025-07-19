@@ -41,10 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function performLiveSearch() {
     const formData = new FormData(searchForm);
-    formData.append("ajax", "1"); // Add AJAX flag
-
-    // Show loading indicator if you have one
-    // document.getElementById('searchLoading').classList.remove('hidden');
+    formData.append("ajax", "1");
 
     fetch(window.location.href + "?" + new URLSearchParams(formData), {
       method: "GET",
@@ -54,26 +51,23 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then((response) => response.text())
       .then((html) => {
-        // Replace just the table content
+        // Replace the ENTIRE table container (including empty state)
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
-        const newTable = doc.querySelector(".overflow-x-auto");
+        const newContainer = doc.querySelector(
+          ".bg-white.rounded-lg.shadow-sm"
+        );
 
-        if (newTable) {
-          document.querySelector(".overflow-x-auto").outerHTML =
-            newTable.outerHTML;
+        if (newContainer) {
+          document.querySelector(".bg-white.rounded-lg.shadow-sm").outerHTML =
+            newContainer.outerHTML;
         }
 
-        // Restore focus and cursor position
         searchInput.focus();
         restoreCursorPosition();
       })
       .catch((error) => {
         console.error("Search error:", error);
-      })
-      .finally(() => {
-        // Hide loading indicator if you have one
-        // document.getElementById('searchLoading').classList.add('hidden');
       });
   }
 });

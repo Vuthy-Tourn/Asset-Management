@@ -321,6 +321,7 @@ class DataTable
     ?>
         <div class="bg-white rounded-lg shadow-sm overflow-hidden">
             <?php if (empty($this->data)): ?>
+                
                 <div class="text-center py-12">
                     <i class="fas fa-box-open text-6xl text-gray-300 mb-4"></i>
                     <h3 class="text-xl font-semibold text-gray-600 mb-2">

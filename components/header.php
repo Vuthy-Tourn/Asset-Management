@@ -380,7 +380,11 @@ $dark_mode = isset($_COOKIE['dark_mode']) && $_COOKIE['dark_mode'] === 'true';
                             </a>
                         </div>
                         <div class="py-2">
-                            <a href="../auth/logout.php" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50/80 smooth-transition">
+                            <?php
+                            $logoutPath = basename($_SERVER['PHP_SELF']) === 'index.php' ? './auth/logout.php' : '../auth/logout.php';
+                            ?>
+
+                            <a href="<?= $logoutPath ?>" class="flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50/80 smooth-transition">
                                 <i class="fas fa-sign-out-alt w-4 mr-3"></i>
                                 Sign out
                             </a>
